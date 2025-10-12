@@ -1,4 +1,4 @@
-﻿package com.thatameliah.nfcregister;
+package com.thatameliah.RFIDRegister;
 
 import org.json.JSONObject;
 
