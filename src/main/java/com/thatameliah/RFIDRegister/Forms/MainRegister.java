@@ -10,6 +10,7 @@ public class MainRegister extends JFrame {
     public MainRegister() {
         setTitle("Register");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(300, 300);
         setContentPane(ContentPane);
 
         // Setup click behaviour for the Quit button
