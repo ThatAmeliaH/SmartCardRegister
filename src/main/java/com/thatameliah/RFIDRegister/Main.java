@@ -11,8 +11,9 @@ import com.thatameliah.RFIDRegister.Forms.MainRegister;
 import com.thatameliah.RFIDRegister.Handlers.Base64Handler;
 import com.thatameliah.RFIDRegister.Handlers.FileHandler;
 import com.thatameliah.RFIDRegister.Handlers.JSONHandler;
-import org.json.JSONArray;
-import org.json.JSONObject;
+
+// Kotlin data classes
+import com.thatameliah.RFIDRegister.DataClasses.User;
 
 // External libraries
 import javax.swing.*;
@@ -23,7 +24,6 @@ public class Main {
         JSONHandler jsonHandler = new JSONHandler();
         FileHandler fileHandler = new FileHandler();
         Base64Handler base64Handler = new Base64Handler();
-
         // Initialise UI
         MainRegister RegisterUI = new MainRegister();
 

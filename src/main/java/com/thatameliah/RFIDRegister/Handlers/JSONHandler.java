@@ -7,6 +7,7 @@ import java.util.*;
 
 public class JSONHandler {
     // Create a new JSON Object representing one person
+    // TODO: Rewrite to accept a "User" Kotlin dataclass
     public JSONObject NewUser(String name, String id) {
         Map<String, String> hash = new HashMap<>();
         hash.put("name", name);
