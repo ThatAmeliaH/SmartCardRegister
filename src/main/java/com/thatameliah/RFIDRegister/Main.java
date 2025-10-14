@@ -11,6 +11,8 @@ import com.thatameliah.RFIDRegister.Forms.MainRegister;
 import com.thatameliah.RFIDRegister.Handlers.Base64Handler;
 import com.thatameliah.RFIDRegister.Handlers.FileHandler;
 import com.thatameliah.RFIDRegister.Handlers.JSONHandler;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 // External libraries
 import javax.swing.*;
