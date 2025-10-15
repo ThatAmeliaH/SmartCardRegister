@@ -7,10 +7,9 @@ package com.thatameliah.SmartCardRegister;
 
 // Internal Java classes
 import com.thatameliah.SmartCardRegister.Forms.MainRegisterUI;
-import com.thatameliah.SmartCardRegister.Handlers.*;
 
 // Internal Kotlin classes
-import com.thatameliah.SmartCardRegister.DataClasses.*;
+import com.thatameliah.SmartCardRegister.KotlinClasses.ProgramState;
 
 // External libraries
 import javax.swing.*;
@@ -19,6 +18,7 @@ public class Main {
     public static void main(String[] args) {
         // Initialise UI
         MainRegisterUI registerUI = new MainRegisterUI();
+        ProgramState.INSTANCE.setFullscreen(false);
 
         // Enable register UI - runs on the event dispatch thread after all pending AWT events have finished
         SwingUtilities.invokeLater(() -> {

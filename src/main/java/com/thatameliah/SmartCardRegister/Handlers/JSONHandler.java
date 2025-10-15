@@ -2,7 +2,7 @@ package com.thatameliah.SmartCardRegister.Handlers;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import com.thatameliah.SmartCardRegister.DataClasses.*;
+import com.thatameliah.SmartCardRegister.KotlinClasses.*;
 
 import java.util.*;
 
