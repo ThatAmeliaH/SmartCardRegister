@@ -1,20 +1,38 @@
 package com.thatameliah.SmartCardRegister.Handlers;
 
 import java.util.Base64;
-import java.util.Base64.Encoder;
-import java.util.Base64.Decoder;
 
 public class Base64Handler {
-    private final Encoder encoder = Base64.getEncoder();
-    private final Decoder decoder = Base64.getDecoder();
+    // Setup ENCODER and DECODER for use in functions
+    private static final Base64.Encoder ENCODER = Base64.getEncoder();
+    private static final Base64.Decoder DECODER = Base64.getDecoder();
 
-    public String EncodeString(String input) {
-        byte[] bytes = input.getBytes();
-        return encoder.encodeToString(bytes);
+    // Private constructor, prevents accidental initialisation
+    private Base64Handler() {
+        throw new UnsupportedOperationException("Handler classes are static and cannot be initialised.");
     }
 
-    public String DecodeString(String input) {
-        byte[] bytes = decoder.decode(input);
+    /**
+     * Encodes a string into Base 64
+     * @param input The String to be encoded
+     * @return The input String encoded in Base64
+     */
+    public static String EncodeString(String input) {
+        if (input == null) { return null; }
+
+        byte[] bytes = input.getBytes();
+        return ENCODER.encodeToString(bytes);
+    }
+
+    /**
+     * Decodes a string from Base 64 into plaintext
+     * @param input The String to be decoded
+     * @return The input String decoded into plaintext
+     */
+    public static String DecodeString(String input) {
+        if (input == null) { return null; }
+
+        byte[] bytes = DECODER.decode(input);
         return new String(bytes);
     }
 }

@@ -4,9 +4,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.smartcardio.*;
 import java.util.List;
-
 public class NFCHandler {
-    // TODO: Test this at college with my ID Card
+    // TODO: Make this static, test at college with my ID Card
     public static void main(String[] args) throws Exception {
         TerminalFactory factory = TerminalFactory.getDefault();
         List<CardTerminal> terminals = factory.terminals().list();

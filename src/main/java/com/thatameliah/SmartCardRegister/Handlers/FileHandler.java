@@ -10,20 +10,25 @@ import java.nio.file.Paths;
 public class FileHandler {
     private static final Path SAVES_DIRECTORY = Paths.get("saves");
 
+    // Private constructor, prevents accidental initialisation
+    private FileHandler() {
+        throw new UnsupportedOperationException("Handler classes are static and cannot be initialised.");
+    }
+
     // Gets the Path to the specified file
-    private Path GetPathToFile(String filename, String extension) {
+    private static Path GetPathToFile(String filename, String extension) {
         return SAVES_DIRECTORY.resolve(filename + extension);
     }
 
     // Ensure the "saves" directory exists
-    private void EnsureDirectory() throws IOException {
+    private static void EnsureDirectory() throws IOException {
         if (!Files.exists(SAVES_DIRECTORY)) {
             Files.createDirectories(SAVES_DIRECTORY);
         }
     }
 
     // Write a string to a file
-    public void WriteToFile(String content, String filename, String extension) {
+    public static void WriteToFile(String content, String filename, String extension) {
         Path path = GetPathToFile(filename, extension);
         try {
             EnsureDirectory();
@@ -37,7 +42,7 @@ public class FileHandler {
     }
 
     // Read file content as string
-    public String ReadFile(String filename, String extension) {
+    public static String ReadFile(String filename, String extension) {
         Path path = GetPathToFile(filename, extension);
         if (!Files.exists(path)) {
             System.err.println("File not found: " + path);
@@ -52,7 +57,7 @@ public class FileHandler {
     }
 
     // Delete file if exists
-    public void DeleteFile(String filename, String extension) {
+    public static void DeleteFile(String filename, String extension) {
         Path path = GetPathToFile(filename, extension);
         try {
             if (Files.deleteIfExists(path)) {

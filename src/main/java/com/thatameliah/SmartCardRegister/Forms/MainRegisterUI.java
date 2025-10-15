@@ -2,12 +2,12 @@ package com.thatameliah.SmartCardRegister.Forms;
 
 import javax.swing.*;
 
-public class MainRegister extends JFrame {
+public class MainRegisterUI extends JFrame {
     private JButton QuitButton;
     private JPanel ContentPane;
 
     // Main form constructor
-    public MainRegister() {
+    public MainRegisterUI() {
         setTitle("Register");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(300, 300);
