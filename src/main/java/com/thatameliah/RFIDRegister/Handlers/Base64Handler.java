@@ -14,7 +14,7 @@ public class Base64Handler {
     }
 
     public String DecodeString(String input) {
-        byte[] outputBytes = decoder.decode(input);
-        return new String(outputBytes);
+        byte[] bytes = decoder.decode(input);
+        return new String(bytes);
     }
 }

@@ -2,17 +2,20 @@ package com.thatameliah.RFIDRegister.Handlers;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import com.thatameliah.RFIDRegister.DataClasses.*;
 
 import java.util.*;
 
 public class JSONHandler {
-    // Create a new JSON Object representing one person
-    // TODO: Rewrite to accept a "User" Kotlin dataclass
-    public JSONObject NewUser(String name, String id) {
-        Map<String, String> hash = new HashMap<>();
-        hash.put("name", name);
-        hash.put("id", id);
-        return new JSONObject(hash);
+   // Create a new JSON Object representing one person
+    public JSONObject CreatePersonJSON(Person person) {
+        String name = person.getForename() + person.getSurname();
+        String Id = person.getId();
+        
+        Map<String, String> hashMap = new HashMap<String, String>();
+        hashMap.put("name", name);
+        hashMap.put("id", Id);
+        return new JSONObject(hashMap);
     }
 
     // Convert an array of JSONObjects to one JSONArray

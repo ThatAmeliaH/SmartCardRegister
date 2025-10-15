@@ -1,6 +1,8 @@
-// RFID Registration system
-// Initial prototype by Sidney "Amelia" Hills, candidate number 3829
-// All Rights Reserved
+/*
+    RFID Registration system
+    Initial prototype by Sidney "Amelia" Hills, candidate number 3829
+    All Rights Reserved
+*/
 
 package com.thatameliah.RFIDRegister;
 
@@ -13,7 +15,7 @@ import com.thatameliah.RFIDRegister.Handlers.FileHandler;
 import com.thatameliah.RFIDRegister.Handlers.JSONHandler;
 
 // Kotlin data classes
-import com.thatameliah.RFIDRegister.DataClasses.User;
+import com.thatameliah.RFIDRegister.DataClasses.*;
 
 // External libraries
 import javax.swing.*;
