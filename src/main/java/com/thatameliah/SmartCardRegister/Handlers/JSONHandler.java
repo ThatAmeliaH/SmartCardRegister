@@ -1,8 +1,8 @@
-package com.thatameliah.RFIDRegister.Handlers;
+package com.thatameliah.SmartCardRegister.Handlers;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import com.thatameliah.RFIDRegister.DataClasses.*;
+import com.thatameliah.SmartCardRegister.DataClasses.*;
 
 import java.util.*;
 

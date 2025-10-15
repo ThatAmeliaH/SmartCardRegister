@@ -1,4 +1,4 @@
-package com.thatameliah.RFIDRegister.Handlers;
+package com.thatameliah.SmartCardRegister.Handlers;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;

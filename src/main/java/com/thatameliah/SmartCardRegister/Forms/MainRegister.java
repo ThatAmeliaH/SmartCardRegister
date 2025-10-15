@@ -1,4 +1,4 @@
-package com.thatameliah.RFIDRegister.Forms;
+package com.thatameliah.SmartCardRegister.Forms;
 
 import javax.swing.*;
 

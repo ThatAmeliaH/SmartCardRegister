@@ -1,4 +1,4 @@
-package com.thatameliah.RFIDRegister.Handlers;
+package com.thatameliah.SmartCardRegister.Handlers;
 
 import java.util.Base64;
 import java.util.Base64.Encoder;

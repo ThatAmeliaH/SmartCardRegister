@@ -4,18 +4,18 @@
     All Rights Reserved
 */
 
-package com.thatameliah.RFIDRegister;
+package com.thatameliah.SmartCardRegister;
 
 // Internal form classes
-import com.thatameliah.RFIDRegister.Forms.MainRegister;
+import com.thatameliah.SmartCardRegister.Forms.MainRegister;
 
 // Internal handler classes
-import com.thatameliah.RFIDRegister.Handlers.Base64Handler;
-import com.thatameliah.RFIDRegister.Handlers.FileHandler;
-import com.thatameliah.RFIDRegister.Handlers.JSONHandler;
+import com.thatameliah.SmartCardRegister.Handlers.Base64Handler;
+import com.thatameliah.SmartCardRegister.Handlers.FileHandler;
+import com.thatameliah.SmartCardRegister.Handlers.JSONHandler;
 
 // Kotlin data classes
-import com.thatameliah.RFIDRegister.DataClasses.*;
+import com.thatameliah.SmartCardRegister.DataClasses.*;
 
 // External libraries
 import javax.swing.*;

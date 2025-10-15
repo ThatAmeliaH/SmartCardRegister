@@ -1,4 +1,4 @@
-package com.thatameliah.RFIDRegister.Handlers;
+package com.thatameliah.SmartCardRegister.Handlers;
 
 import org.jetbrains.annotations.NotNull;
 
