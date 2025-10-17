@@ -3,7 +3,7 @@ plugins {
     kotlin("jvm")
 }
 
-group = "org.example"
+group = "com.thatameliah.SmartCardRegister"
 version = "1.0-SNAPSHOT"
 
 repositories {

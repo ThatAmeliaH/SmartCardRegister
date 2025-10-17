@@ -1,9 +1,8 @@
 package com.thatameliah.SmartCardRegister.Handlers;
 
-import org.jetbrains.annotations.NotNull;
-
 import javax.smartcardio.*;
 import java.util.List;
+
 public class NFCHandler {
     // TODO: Make this static, test at college with my ID Card
     public static void main(String[] args) throws Exception {
@@ -48,9 +47,8 @@ public class NFCHandler {
         card.disconnect(false);
         System.out.println("Card disconnected.");
     }
-
-    @NotNull
-    private static String bytesToHex(@NotNull byte[] bytes) {
+    
+    private static String bytesToHex(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
             sb.append(String.format("%02X", b));
