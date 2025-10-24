@@ -9,7 +9,7 @@ package com.thatameliah.SmartCardRegister;
 import com.thatameliah.SmartCardRegister.Forms.MainRegisterUI;
 
 // Internal Kotlin classes
-
+// Blank for now, Kotlin isn't configured at college, and so I can't use it yet
 
 // External libraries
 import javax.swing.*;

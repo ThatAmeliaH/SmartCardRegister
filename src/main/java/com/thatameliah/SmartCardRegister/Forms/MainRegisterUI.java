@@ -58,19 +58,21 @@ public class MainRegisterUI extends JFrame {
 
     private void toggleFullscreen() {
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        
+
         if (isFullscreen) {
             // Exit fullscreen
             device.setFullScreenWindow(null);
             dispose();
             setUndecorated(false);
             setBounds(windowedBounds);
+            setVisible(true);
             isFullscreen = false;
         } else {
             // Enter fullscreen
             windowedBounds = getBounds();
             dispose();
             setUndecorated(true);
+            setVisible(true);
             device.setFullScreenWindow(this);
             isFullscreen = true;
         }
