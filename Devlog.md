@@ -78,3 +78,15 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
 **Removals**
 - Removed unused Person.kt and Person.java data classes
 - Removed Resources directory and template.json
+
+## 26/10/25
+**Additions**
+- Added keybinds for presences and deleting people
+  - DELETE: Delete User (with confirmation)
+  - CTRL + DELETE: Delete User (skips confirmation message)
+  - ALT + 1/2/3: Sets the selected user to present/late/absent
+
+**Changes**
+- Changed DeleteUser() to take in a boolean input - "overrideWarning" - that skips the popup asking the user to confirm deleting the selected user
+- Changed the click detection and handling for the delete button
+  - New system allows for CTRL Clicking, this passes true into overrideWarning making it function the same as CTRL + DELETE

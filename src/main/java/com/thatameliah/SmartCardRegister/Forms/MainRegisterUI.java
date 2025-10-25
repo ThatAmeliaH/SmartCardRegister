@@ -10,6 +10,8 @@ import javax.swing.filechooser.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -123,27 +125,46 @@ public class MainRegisterUI extends JFrame {
         SetPresenceBox.addActionListener(e -> UpdatePresence());
 
         // Setup button behaviours
-        NewPersonButton.addActionListener(event -> NewPerson());                // Create new person
-        UpdatePersonButton.addActionListener(event -> UpdatePerson());          // Update selected person
-        DeleteSelectedButton.addActionListener(event -> DeletePerson());        // Delete selected person
-        SaveFileButton.addActionListener(event -> SaveRegister());              // Save register to file
-        OpenFileButton.addActionListener(event -> LoadRegister());              // Load register from file
-        CloseFileButton.addActionListener(event -> Quit());                     // Close register file (quits the current instance of the application)
+        NewPersonButton.addActionListener(event -> NewPerson());
+        UpdatePersonButton.addActionListener(event -> UpdatePerson());
+        SaveFileButton.addActionListener(event -> SaveRegister());
+        OpenFileButton.addActionListener(event -> LoadRegister());
+        CloseFileButton.addActionListener(event -> Quit());
+
+        // Additional logic for Delete button (allows for CTRL Clicking)
+        DeleteSelectedButton.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent event) {
+                DeletePerson((event.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) != 0);
+            }
+        });
 
         // Setup key press behaviour
         final int EXIT_KEY = KeyEvent.VK_ESCAPE;
         final int FULLSCREEN_KEY = KeyEvent.VK_F11;
-        final int DELETE_SELECTED_KEY = KeyEvent.VK_DELETE;
+
         final int NEW_PERSON_KEY = KeyEvent.VK_N;
+        final int DELETE_KEY = KeyEvent.VK_DELETE;
+
         final int SAVE_KEY = KeyEvent.VK_S;
         final int OPEN_KEY = KeyEvent.VK_O;
 
-        BindKey(ContentPane, EXIT_KEY, 0, "Exit", this::Quit);
-        BindKey(ContentPane, FULLSCREEN_KEY, 0,"ToggleFullscreen", this::ToggleFullscreen);
-        BindKey(ContentPane, DELETE_SELECTED_KEY, 0,"DeleteSelected", this::DeletePerson);
-        BindKey(ContentPane, NEW_PERSON_KEY, KeyEvent.CTRL_DOWN_MASK, "NewPerson", this::NewPerson);
-        BindKey(ContentPane, SAVE_KEY, KeyEvent.CTRL_DOWN_MASK, "SaveRegister", this::SaveRegister);
-        BindKey(ContentPane, OPEN_KEY, KeyEvent.CTRL_DOWN_MASK, "OpenRegister", this::LoadRegister);
+        final int PRESENT_KEY = KeyEvent.VK_1;
+        final int LATE_KEY = KeyEvent.VK_2;
+        final int ABSENT_KEY = KeyEvent.VK_3;
+
+        BindKey(EXIT_KEY, 0, "Exit", this::Quit);
+        BindKey(FULLSCREEN_KEY, 0,"ToggleFullscreen", this::ToggleFullscreen);
+
+        BindKey(NEW_PERSON_KEY, KeyEvent.CTRL_DOWN_MASK, "NewPerson", this::NewPerson);
+        BindKey(DELETE_KEY, 0,"DeleteSelected", () -> DeletePerson(false));
+        BindKey(DELETE_KEY, KeyEvent.CTRL_DOWN_MASK, "SudoDeleteSelected", () -> DeletePerson(true));
+
+        BindKey(SAVE_KEY, KeyEvent.CTRL_DOWN_MASK, "SaveRegister", this::SaveRegister);
+        BindKey(OPEN_KEY, KeyEvent.CTRL_DOWN_MASK, "OpenRegister", this::LoadRegister);
+
+        BindKey(PRESENT_KEY, KeyEvent.ALT_DOWN_MASK, "SetPresent", () -> SetPresence(PresenceState.PRESENT));
+        BindKey(LATE_KEY, KeyEvent.ALT_DOWN_MASK, "SetLate", () -> SetPresence(PresenceState.LATE));
+        BindKey(ABSENT_KEY, KeyEvent.ALT_DOWN_MASK, "SetAbsent", () -> SetPresence(PresenceState.ABSENT));
 
         SetStatus(Status.READY);
     }
@@ -154,15 +175,15 @@ public class MainRegisterUI extends JFrame {
         StatusLabel.setText("Status: " + message);
     }
 
-    private void BindKey(JComponent component, int keyCode, int modifiers, String actionName, Runnable function) {
+    private void BindKey(int keyCode, int modifiers, String actionName, Runnable function) {
         KeyStroke keyStroke = KeyStroke.getKeyStroke(keyCode, modifiers);
         if (keyStroke == null) {
             System.err.println("Invalid KeyStroke: " + keyCode);
             return;
         }
 
-        InputMap inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        ActionMap actionMap = component.getActionMap();
+        InputMap inputMap = ContentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = ContentPane.getActionMap();
 
         Object oldBinding = inputMap.get(keyStroke);
         if (oldBinding != null) {
@@ -335,7 +356,7 @@ public class MainRegisterUI extends JFrame {
         SetStatus(Status.READY);
     }
 
-    private void DeletePerson() {
+    private void DeletePerson(boolean OverrideWarning) {
         SetStatus(Status.AWAITING_INPUT);
 
         int selectedIndex = PersonList.getSelectedIndex();
@@ -355,17 +376,19 @@ public class MainRegisterUI extends JFrame {
         int id = ParseIdFromListString(entry);
         String selectedName = people.get(id);
 
-        int confirm = JOptionPane.showConfirmDialog(
-                this,
-                "Are you sure you want to delete \"" + selectedName + "\" (ID: " + id + ")? This action cannot be undone!",
-                "Confirm Delete",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
-        );
+        if (!OverrideWarning) {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to delete \"" + selectedName + "\" (ID: " + id + ")? This action cannot be undone!",
+                    "Confirm Delete",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
 
-        if (confirm != JOptionPane.YES_OPTION) {
-            SetStatus(Status.READY);
-            return;
+            if (confirm != JOptionPane.YES_OPTION) {
+                SetStatus(Status.READY);
+                return;
+            }
         }
 
         SetStatus(Status.WORKING);
@@ -414,6 +437,10 @@ public class MainRegisterUI extends JFrame {
         presenceStates.put(id, state);
         PersonList.revalidate();
         PersonList.repaint();
+    }
+
+    private void SetPresence(PresenceState newPresence) {
+        SetPresenceBox.setSelectedItem(newPresence);
     }
 
     // For saving and exiting, we don't want the form to quit out if the saving fails, so this function returns an integer.
