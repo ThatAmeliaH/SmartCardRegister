@@ -1,6 +1,5 @@
 package com.thatameliah.SmartCardRegister.Handlers;
 
-import com.thatameliah.SmartCardRegister.DataClasses.Person;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -14,16 +13,14 @@ public class JSONHandler {
 
     /** Create a new JSON Object representing one person
      *
-     * @param person The Person to create the JSON Object from
+     * @param name The person's name
+     * @param id The ID of the person
      * @return JSONObject with String "name" and String "id" fields
      */
-    public static JSONObject CreatePersonJSON(Person person) {
-        String name = person.getForename() + " " + person.getSurname();
-        String Id = person.getId();
-        
+    public static JSONObject CreatePersonJSON(String name, String id) {
         Map<String, String> hashMap = new HashMap<String, String>();
         hashMap.put("name", name);
-        hashMap.put("id", Id);
+        hashMap.put("id", id);
         return new JSONObject(hashMap);
     }
 
