@@ -1,6 +1,7 @@
 package com.thatameliah.SmartCardRegister.Forms;
 
 import com.thatameliah.SmartCardRegister.Handlers.*;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -15,22 +16,24 @@ import java.util.Map;
 
 public class MainRegisterUI extends JFrame {
     private JPanel ContentPane;
-    private JButton OpenFileButton;
     private JLabel StatusLabel;
-    private JList<String> PersonList;
+    private JLabel ReaderLabel;
     private JButton NewPersonButton;
+    private JButton UpdatePersonButton;
     private JButton DeleteSelectedButton;
     private JButton SaveFileButton;
+    private JButton OpenFileButton;
     private JButton CloseFileButton;
     private JComboBox<PresenceState> SetPresenceBox;
-    private JLabel ReaderLabel;
+    private JList<String> PersonList;
     private JTextField ForenameField;
     private JTextField SurnameField;
-    private JButton UpdatePersonButton;
 
     private final DefaultListModel<String> personListModel;
+
     private final Map<Integer, String> people = new HashMap<>();
     private final Map<Integer, PresenceState> presenceStates = new HashMap<>();
+
     private int nextID = 1;
 
     private boolean isFullscreen = false;
@@ -99,7 +102,7 @@ public class MainRegisterUI extends JFrame {
                 JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 String entry = (String) value;
 
-                int id = ParseID(entry);
+                int id = ParseIdFromListString(entry);
                 PresenceState state = presenceStates.getOrDefault(id, PresenceState.ABSENT);
 
                 if (isSelected) {
@@ -208,11 +211,11 @@ public class MainRegisterUI extends JFrame {
         return null;
     }
 
-    private String FormatPerson(int id, String name) {
+    private String FormatListString(int id, String name) {
         return "[" + id + "]" + ": " + name;
     }
 
-    private int ParseID(String entry) {
+    private int ParseIdFromListString(@NotNull String entry) {
         return Integer.parseInt(entry.split(":")[0].replaceAll("[\\[\\]]","").trim());
     }
 
@@ -262,7 +265,7 @@ public class MainRegisterUI extends JFrame {
                 int id = nextID++;
                 people.put(id, fullName);
                 presenceStates.put(id, PresenceState.ABSENT);
-                personListModel.addElement(FormatPerson(id, fullName));
+                personListModel.addElement(FormatListString(id, fullName));
             } else {
                 JOptionPane.showMessageDialog(
                         this,
@@ -295,7 +298,7 @@ public class MainRegisterUI extends JFrame {
 
         String entry = personListModel.getElementAt(selectedIndex);
 
-        int id = ParseID(entry);
+        int id = ParseIdFromListString(entry);
         String OldFullName = people.get(id);
 
         String newForename = ForenameField.getText().trim();
@@ -327,7 +330,7 @@ public class MainRegisterUI extends JFrame {
         }
 
         people.put(id, newFullName);
-        personListModel.set(selectedIndex, FormatPerson(id, newFullName));
+        personListModel.set(selectedIndex, FormatListString(id, newFullName));
 
         SetStatus(Status.READY);
     }
@@ -349,7 +352,7 @@ public class MainRegisterUI extends JFrame {
         }
 
         String entry = personListModel.getElementAt(selectedIndex);
-        int id = ParseID(entry);
+        int id = ParseIdFromListString(entry);
         String selectedName = people.get(id);
 
         int confirm = JOptionPane.showConfirmDialog(
@@ -381,7 +384,7 @@ public class MainRegisterUI extends JFrame {
         }
 
         String entry = personListModel.getElementAt(selectedIndex);
-        int id = ParseID(entry);
+        int id = ParseIdFromListString(entry);
 
         PresenceState state = presenceStates.getOrDefault(id, PresenceState.ABSENT);
         SetPresenceBox.setSelectedItem(state);
@@ -403,7 +406,7 @@ public class MainRegisterUI extends JFrame {
         if (selectedIndex == -1) { return; }
 
         String entry = personListModel.getElementAt(selectedIndex);
-        int id = ParseID(entry);
+        int id = ParseIdFromListString(entry);
 
         PresenceState state = (PresenceState) SetPresenceBox.getSelectedItem();
         if (state == null) { return; }
@@ -481,13 +484,13 @@ public class MainRegisterUI extends JFrame {
             return;
         }
 
-        String filename = loadedFile.getName();
-        if (!filename.endsWith(".rsave")) {
-            filename += ".rsave";
+        String loadedFileName = loadedFile.getName();
+        if (!loadedFileName.endsWith(".rsave")) {
+            loadedFileName += ".rsave";
         }
 
         try {
-            String encodedString = FileHandler.ReadFile(filename);
+            String encodedString = FileHandler.ReadFile(loadedFileName);
             if (encodedString == null || encodedString.isEmpty()) {
                 JOptionPane.showMessageDialog(
                         this,
@@ -513,14 +516,14 @@ public class MainRegisterUI extends JFrame {
                 String name = obj.getString("name");
 
                 people.put(id, name);
-                personListModel.addElement(FormatPerson(id, name));
+                personListModel.addElement(FormatListString(id, name));
 
                 if (id >= nextID) { nextID = id + 1; }
             }
         } catch (Exception err) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Error loading register \"" + filename + "\": " + err.getMessage(),
+                    "Error loading register \"" + loadedFileName + "\": " + err.getMessage(),
                     "Load Error",
                     JOptionPane.ERROR_MESSAGE
             );
