@@ -77,3 +77,4 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
 
 **Removals**
 - Removed unused Person.kt and Person.java data classes
+- Removed Resources directory and template.json

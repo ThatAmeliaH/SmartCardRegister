@@ -579,8 +579,8 @@ public class MainRegisterUI extends JFrame {
         System.exit(0);
     }
 
-    // Some components require custom creation instead of the preset swing UI designer creation
-    // This function will run first, as the form is loading
+    // Some components require custom creation instead of the preset creation from the Swing UI Designer plugin
+    // This function handles those cases and will run first, as the form is loading
     private void createUIComponents() {
         // Ensure ContentPane exists
         if (ContentPane == null) {
@@ -593,15 +593,19 @@ public class MainRegisterUI extends JFrame {
         StatusLabel.setPreferredSize(new Dimension(200, 30));
         StatusLabel.setForeground(Color.BLACK);
 
+        // Custom create NFCReader name label
         ReaderLabel = new JLabel("Reader: N/A");
         ReaderLabel.setFont(new Font("JetBrains Mono", Font.PLAIN, 20));
         ReaderLabel.setPreferredSize(new Dimension(200, 30));
         ReaderLabel.setForeground(Color.BLACK);
 
+        // Add labels to panel - position can break if added directly to ContentPane
         JPanel statusPanel = new JPanel(new BorderLayout());
+        statusPanel.add(ReaderLabel, BorderLayout.CENTER);
         statusPanel.add(StatusLabel, BorderLayout.CENTER);
         statusPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
+        // Add new panel to main ContentPane
         ContentPane.setLayout(new BorderLayout());
         ContentPane.add(statusPanel, BorderLayout.SOUTH);
     }
