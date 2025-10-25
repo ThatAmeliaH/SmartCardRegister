@@ -8,15 +8,13 @@ import org.json.JSONObject;
 import javax.swing.*;
 import javax.swing.filechooser.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class MainRegisterUI extends JFrame {
+public class Register extends JFrame {
     private JPanel ContentPane;
     private JLabel StatusLabel;
     private JLabel ReaderLabel;
@@ -74,7 +72,7 @@ public class MainRegisterUI extends JFrame {
     }};
 
     // Main form constructor
-    public MainRegisterUI() {
+    public Register() {
         SetStatus(Status.LOADING);
 
         // Setup view size
@@ -87,8 +85,13 @@ public class MainRegisterUI extends JFrame {
         // JFrame configuration
         setTitle("Register");
         setSize(V_WIDTH, V_HEIGHT);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLocationRelativeTo(null);
+        addWindowListener(new WindowAdapter() {
+            @Override public void windowClosing(WindowEvent e) {
+                Quit();
+            }
+        });
 
         // Content Pane configuration
         setContentPane(ContentPane);
@@ -133,39 +136,56 @@ public class MainRegisterUI extends JFrame {
 
         // Additional logic for Delete button (allows for CTRL Clicking)
         DeleteSelectedButton.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent event) {
+            @Override public void mouseClicked(MouseEvent event) {
                 DeletePerson((event.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) != 0);
             }
         });
 
-        // Setup key press behaviour
-        final int EXIT_KEY = KeyEvent.VK_ESCAPE;
-        final int FULLSCREEN_KEY = KeyEvent.VK_F11;
+        // Setup keybinds
+        // Assign keys to actions
+        enum Action {
+            EXIT(KeyEvent.VK_ESCAPE),
+            FULLSCREEN(KeyEvent.VK_F11),
+            NEW_PERSON(KeyEvent.VK_N),
+            DELETE(KeyEvent.VK_DELETE),
+            SAVE(KeyEvent.VK_S),
+            OPEN(KeyEvent.VK_O),
+            PRESENT(KeyEvent.VK_1),
+            LATE(KeyEvent.VK_2),
+            ABSENT(KeyEvent.VK_3);
 
-        final int NEW_PERSON_KEY = KeyEvent.VK_N;
-        final int DELETE_KEY = KeyEvent.VK_DELETE;
+            final int keyCode;
 
-        final int SAVE_KEY = KeyEvent.VK_S;
-        final int OPEN_KEY = KeyEvent.VK_O;
+            Action(int keyCode) {
+                this.keyCode = keyCode;
+            }
+        }
 
-        final int PRESENT_KEY = KeyEvent.VK_1;
-        final int LATE_KEY = KeyEvent.VK_2;
-        final int ABSENT_KEY = KeyEvent.VK_3;
+        // Assign actions to functions
+        record KeyBinding(Action action, int modifiers, String name, Runnable handler) {}
 
-        BindKey(EXIT_KEY, 0, "Exit", this::Quit);
-        BindKey(FULLSCREEN_KEY, 0,"ToggleFullscreen", this::ToggleFullscreen);
+        final List<KeyBinding> keybinds = List.of(
+                new KeyBinding(Action.EXIT, 0, "Exit", this::Quit),
+                new KeyBinding(Action.FULLSCREEN, 0, "ToggleFullscreen", this::ToggleFullscreen),
 
-        BindKey(NEW_PERSON_KEY, KeyEvent.CTRL_DOWN_MASK, "NewPerson", this::NewPerson);
-        BindKey(DELETE_KEY, 0,"DeleteSelected", () -> DeletePerson(false));
-        BindKey(DELETE_KEY, KeyEvent.CTRL_DOWN_MASK, "SudoDeleteSelected", () -> DeletePerson(true));
+                new KeyBinding(Action.NEW_PERSON, KeyEvent.CTRL_DOWN_MASK, "NewPerson", this::NewPerson),
+                new KeyBinding(Action.DELETE, 0, "DeleteSelected", () -> DeletePerson(false)),
+                new KeyBinding(Action.DELETE, KeyEvent.CTRL_DOWN_MASK, "SudoDeleteSelected", () -> DeletePerson(true)),
 
-        BindKey(SAVE_KEY, KeyEvent.CTRL_DOWN_MASK, "SaveRegister", this::SaveRegister);
-        BindKey(OPEN_KEY, KeyEvent.CTRL_DOWN_MASK, "OpenRegister", this::LoadRegister);
+                new KeyBinding(Action.SAVE, KeyEvent.CTRL_DOWN_MASK, "SaveRegister", this::SaveRegister),
+                new KeyBinding(Action.OPEN, KeyEvent.CTRL_DOWN_MASK, "OpenRegister", this::LoadRegister),
 
-        BindKey(PRESENT_KEY, KeyEvent.ALT_DOWN_MASK, "SetPresent", () -> SetPresence(PresenceState.PRESENT));
-        BindKey(LATE_KEY, KeyEvent.ALT_DOWN_MASK, "SetLate", () -> SetPresence(PresenceState.LATE));
-        BindKey(ABSENT_KEY, KeyEvent.ALT_DOWN_MASK, "SetAbsent", () -> SetPresence(PresenceState.ABSENT));
+                new KeyBinding(Action.PRESENT, KeyEvent.ALT_DOWN_MASK, "SetPresent", () -> SetPresence(PresenceState.PRESENT)),
+                new KeyBinding(Action.LATE, KeyEvent.ALT_DOWN_MASK, "SetLate", () -> SetPresence(PresenceState.LATE)),
+                new KeyBinding(Action.ABSENT, KeyEvent.ALT_DOWN_MASK, "SetAbsent", () -> SetPresence(PresenceState.ABSENT))
+        );
 
+        // Bind functions to keypresses
+        for (var kb : keybinds) {
+            BindKey(kb.action.keyCode, kb.modifiers, kb.name, kb.handler);
+        }
+
+        // Setup complete - set status to READY
         SetStatus(Status.READY);
     }
 

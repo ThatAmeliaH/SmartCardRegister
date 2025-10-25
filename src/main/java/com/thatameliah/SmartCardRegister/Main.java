@@ -6,7 +6,7 @@
 package com.thatameliah.SmartCardRegister;
 
 // Internal Java classes
-import com.thatameliah.SmartCardRegister.Forms.MainRegisterUI;
+import com.thatameliah.SmartCardRegister.Forms.Register;
 
 // Internal Kotlin classes
 // Blank for now, Kotlin isn't configured at college, and so I can't use it yet
@@ -17,7 +17,7 @@ import javax.swing.*;
 public class Main {
     public static void main(String[] args) {
         // Initialise UI
-        MainRegisterUI registerUI = new MainRegisterUI();
+        Register registerUI = new Register();
 
         // Enable register UI - runs on the event dispatch thread after all pending AWT events have finished
         SwingUtilities.invokeLater(() -> {

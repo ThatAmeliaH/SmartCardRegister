@@ -74,6 +74,8 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
 - Changed Status label to use an Enum and HashMap from a raw string
 - Changed person presence to use an Enum and HashMap from a boolean
 - Refactored JSONObject[] creation in SaveRegister() to use the JSONHandler
+- Changed the X button on the JFrame to trigger the Save prompt
+- Changed the keybind input detection to use an Enum and a List so I don't make a typo and break everything
 
 **Removals**
 - Removed unused Person.kt and Person.java data classes
