@@ -446,12 +446,7 @@ public class MainRegisterUI extends JFrame {
 
         try {
             JSONObject[] peopleObjects = people.entrySet().stream()
-                    .map(entry -> {
-                        Map<String, String> map = new HashMap<>();
-                        map.put("id", entry.getKey().toString());
-                        map.put("name", entry.getValue());
-                        return new JSONObject(map);
-                    })
+                    .map(entry -> JSONHandler.CreatePersonJSON(entry.getValue(), entry.getKey().toString()))
                     .toArray(JSONObject[]::new);
 
             JSONArray jsonArray = JSONHandler.ToJSONArray(peopleObjects);
