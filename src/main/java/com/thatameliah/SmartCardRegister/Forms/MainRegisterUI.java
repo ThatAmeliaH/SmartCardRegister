@@ -17,8 +17,6 @@ public class MainRegisterUI extends JFrame {
     private boolean isFullscreen = false;
     private Rectangle windowedBounds;
 
-    private Status status;
-
     public enum Status {
         LOADING,
         READY,
@@ -36,6 +34,8 @@ public class MainRegisterUI extends JFrame {
         put(Status.SAVING_FILE, "Saving File");
         put(Status.LOADING_FILE, "Loading File");
     }};
+
+    private Status status;
 
     // Main form constructor
     public MainRegisterUI() {
@@ -95,7 +95,7 @@ public class MainRegisterUI extends JFrame {
 
     private File LoadFileFromSystem() {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setCurrentDirectory(new File("."));
+        fileChooser.setCurrentDirectory(new File("./saves"));
         fileChooser.setFileFilter(new FileNameExtensionFilter("Register Save Files", ".rsave"));
 
         SetStatus(Status.AWAITING_FILE);
@@ -153,6 +153,8 @@ public class MainRegisterUI extends JFrame {
         System.exit(0);
     }
 
+    // Some components require custom creation instead of the preset swing UI designer creation
+    // This function will run first, as the form is loading
     private void createUIComponents() {
         // Ensure ContentPane exists
         if (ContentPane == null) {

@@ -13,7 +13,7 @@ repositories {
 dependencies {
     // https://mvnrepository.com/artifact/org.json/json
     implementation("org.json:json:20250517")
-    implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("stdlib"))
 }
 
 tasks.test {
