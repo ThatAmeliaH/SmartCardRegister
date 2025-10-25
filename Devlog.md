@@ -3,15 +3,14 @@ Note that this file is different to Snippets.ipynb, in that this is for release 
 TL;DR: Snippets is more for me to talk to myself, this file is more for me to talk to you.
 
 # Development Log
-**24/10/25**
+## 24/10/25
 - Added ability to create and delete people on a register
 - Added ability to mark people as present/absent
 - Added ability to delete people from register
 - Added Status label
 - Added keybinds (ESC for quit, DEL to delete a person)
 
-
-**25/10/25**
+## 25/10/25
 - Added devlog to Git (whoops)
 - Added saving and loading to/from files
   - File format is .rsave, which contains a JSONArray of people, formatted into a string, and encoded in Base64
