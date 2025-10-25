@@ -4,8 +4,6 @@ import javax.swing.*;
 import javax.swing.filechooser.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -94,8 +92,8 @@ public class MainRegisterUI extends JFrame {
         LoadButton.addActionListener(event -> LoadRegister());                  // Load register from file
 
         // Setup key press behaviour
-        InputMap inputMap = ContentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        ActionMap actionMap = ContentPane.getActionMap();
+        //InputMap inputMap = ContentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        //ActionMap actionMap = ContentPane.getActionMap();
 
         final String EXIT_KEY = "ESCAPE";
         final String FULLSCREEN_KEY = "F11";
