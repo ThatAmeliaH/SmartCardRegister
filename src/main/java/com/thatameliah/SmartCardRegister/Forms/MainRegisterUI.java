@@ -1,26 +1,51 @@
 package com.thatameliah.SmartCardRegister.Forms;
 
 import javax.swing.*;
-import javax.swing.plaf.FileChooserUI;
+import javax.swing.filechooser.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainRegisterUI extends JFrame {
-    private final Dimension SCREENSIZE = Toolkit.getDefaultToolkit().getScreenSize();
-    private final double WIDTH = SCREENSIZE.getWidth();
-    private final double HEIGHT = SCREENSIZE.getHeight();
-
-    private JButton QuitButton;
     private JPanel ContentPane;
+    private JButton LoadButton;
+    private JLabel StatusLabel;
 
     private boolean isFullscreen = false;
     private Rectangle windowedBounds;
 
+    private Status status;
+
+    public enum Status {
+        LOADING,
+        READY,
+        AWAITING_INPUT,
+        AWAITING_FILE,
+        SAVING_FILE,
+        LOADING_FILE,
+    }
+
+    private final Map<Status, String> STATUS_MAP = new HashMap<>() {{
+        put(Status.READY, "Ready");
+        put(Status.LOADING, "Loading");
+        put(Status.AWAITING_INPUT, "Awaiting Input");
+        put(Status.AWAITING_FILE, "Awaiting File");
+        put(Status.SAVING_FILE, "Saving File");
+        put(Status.LOADING_FILE, "Loading File");
+    }};
+
     // Main form constructor
     public MainRegisterUI() {
+        SetStatus(Status.LOADING);
+
         // Setup view size
+        final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
+        final double HEIGHT = SCREEN_SIZE.getHeight();
         final int V_HEIGHT = (int) HEIGHT / 2;
+        final double WIDTH = SCREEN_SIZE.getWidth();
         final int V_WIDTH = (int) WIDTH / 2;
         
         // JFrame configuration
@@ -34,8 +59,8 @@ public class MainRegisterUI extends JFrame {
         ContentPane.setFocusable(true);
         ContentPane.requestFocus();
 
-        // Setup click behaviour for the Quit button
-        QuitButton.addActionListener(event -> Quit());
+        // Setup load button behaviour
+        LoadButton.addActionListener(event -> LoadRegister());
 
         // Setup key press behaviour
         ContentPane.addKeyListener(new KeyAdapter() {
@@ -54,6 +79,32 @@ public class MainRegisterUI extends JFrame {
                 }
             }
         });
+
+        SetStatus(Status.READY);
+    }
+
+    public void SetStatus(Status status) {
+        String message = STATUS_MAP.getOrDefault(status, "Unknown");
+        StatusLabel.setText("Status: " + message);
+    }
+
+    private void LoadRegister() {
+        File loadedFile = LoadFileFromSystem();
+        if (loadedFile == null) { return; }
+    }
+
+    private File LoadFileFromSystem() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new File("."));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Register Save Files", ".rsave"));
+
+        SetStatus(Status.AWAITING_FILE);
+        int result = fileChooser.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            return fileChooser.getSelectedFile();
+        }
+        return null;
     }
 
     private void toggleFullscreen() {
@@ -79,7 +130,45 @@ public class MainRegisterUI extends JFrame {
     }
 
     public void Quit() {
-        // TODO: Make a "Do you wish to save current register?" popup
+        SetStatus(Status.AWAITING_INPUT);
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                "Do you wish to save the current register?",
+                "Confirm",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+
+        switch (result) {
+            case JOptionPane.YES_OPTION:
+                SetStatus(Status.SAVING_FILE);
+                // TODO: Implement saving
+                break;
+
+            case JOptionPane.NO_OPTION:
+                break; // Do nothing, exit as usual
+
+            case JOptionPane.CANCEL_OPTION:
+                return; // Cancel quitting
+        }
         System.exit(0);
+    }
+
+    private void createUIComponents() {
+        // Ensure ContentPane exists
+        if (ContentPane == null) {
+            ContentPane = new JPanel();
+        }
+
+        // Custom create Status label
+        StatusLabel = new JLabel("Status: READY");
+        StatusLabel.setFont(new Font("JetBrains Mono", Font.PLAIN, 20));
+        StatusLabel.setForeground(Color.BLACK);
+
+        JPanel statusPanel = new JPanel(new BorderLayout());
+        statusPanel.add(StatusLabel, BorderLayout.EAST);
+        statusPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        ContentPane.setLayout(new BorderLayout());
+        ContentPane.add(statusPanel, BorderLayout.SOUTH);
     }
 }
