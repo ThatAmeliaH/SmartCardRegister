@@ -1,26 +1,37 @@
 package com.thatameliah.SmartCardRegister.Forms;
 
+import com.thatameliah.SmartCardRegister.Handlers.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import javax.swing.*;
 import javax.swing.filechooser.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class MainRegisterUI extends JFrame {
     private JPanel ContentPane;
-    private JButton LoadButton;
+    private JButton OpenFileButton;
     private JLabel StatusLabel;
     private JList<String> PersonList;
     private JButton NewPersonButton;
     private JButton DeleteSelectedButton;
-    private JButton togglePresentButton;
+    private JButton SaveFileButton;
+    private JButton CloseFileButton;
+    private JComboBox<PresenceState> SetPresenceBox;
+    private JLabel ReaderLabel;
+    private JTextField ForenameField;
+    private JTextField SurnameField;
+    private JButton UpdatePersonButton;
 
     private final DefaultListModel<String> personListModel;
-    private final Set<String> presentPeople = new HashSet<>();
+    private final Map<Integer, String> people = new HashMap<>();
+    private final Map<Integer, PresenceState> presenceStates = new HashMap<>();
+    private int nextID = 1;
 
     private boolean isFullscreen = false;
     private Rectangle windowedBounds;
@@ -35,6 +46,12 @@ public class MainRegisterUI extends JFrame {
         LOADING_FILE,
     }
 
+    public enum PresenceState {
+        PRESENT,
+        ABSENT,
+        LATE,
+    }
+
     private final Map<Status, String> STATUS_MAP = new HashMap<>() {{
         put(Status.READY, "Ready");
         put(Status.LOADING, "Loading");
@@ -43,6 +60,12 @@ public class MainRegisterUI extends JFrame {
         put(Status.AWAITING_FILE, "Awaiting File");
         put(Status.SAVING_FILE, "Saving File");
         put(Status.LOADING_FILE, "Loading File");
+    }};
+
+    private final Map<PresenceState, Color> PRESENCE_MAP = new HashMap<>() {{
+        put(PresenceState.PRESENT, Color.GREEN);
+        put(PresenceState.ABSENT, Color.PINK);
+        put(PresenceState.LATE, Color.ORANGE);
     }};
 
     // Main form constructor
@@ -74,34 +97,50 @@ public class MainRegisterUI extends JFrame {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                String name = (String) value;
-                if (presentPeople.contains(name)) {
-                    label.setBackground(Color.GREEN.brighter());
+                String entry = (String) value;
+
+                int id = ParseID(entry);
+                PresenceState state = presenceStates.getOrDefault(id, PresenceState.ABSENT);
+
+                if (isSelected) {
+                    label.setBackground(list.getSelectionBackground());
+                    label.setForeground(list.getSelectionForeground());
                 } else {
-                    label.setBackground(Color.WHITE);
+                    label.setBackground(PRESENCE_MAP.get(state));
+                    label.setForeground(Color.BLACK);
                 }
 
+                label.setOpaque(true);
                 return label;
             }
         });
 
+        SetPresenceBox.setModel(new DefaultComboBoxModel<>(PresenceState.values()));
+        PersonList.addListSelectionListener(e -> UpdateFieldsFromSelection());
+        SetPresenceBox.addActionListener(e -> UpdatePresence());
+
         // Setup button behaviours
         NewPersonButton.addActionListener(event -> NewPerson());                // Create new person
+        UpdatePersonButton.addActionListener(event -> UpdatePerson());          // Update selected person
         DeleteSelectedButton.addActionListener(event -> DeletePerson());        // Delete selected person
-        togglePresentButton.addActionListener(event -> TogglePersonPresent());  // Toggle person present/absent
-        LoadButton.addActionListener(event -> LoadRegister());                  // Load register from file
+        SaveFileButton.addActionListener(event -> SaveRegister());              // Save register to file
+        OpenFileButton.addActionListener(event -> LoadRegister());              // Load register from file
+        CloseFileButton.addActionListener(event -> Quit());                     // Close register file (quits the current instance of the application)
 
         // Setup key press behaviour
-        //InputMap inputMap = ContentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        //ActionMap actionMap = ContentPane.getActionMap();
+        final int EXIT_KEY = KeyEvent.VK_ESCAPE;
+        final int FULLSCREEN_KEY = KeyEvent.VK_F11;
+        final int DELETE_SELECTED_KEY = KeyEvent.VK_DELETE;
+        final int NEW_PERSON_KEY = KeyEvent.VK_N;
+        final int SAVE_KEY = KeyEvent.VK_S;
+        final int OPEN_KEY = KeyEvent.VK_O;
 
-        final String EXIT_KEY = "ESCAPE";
-        final String FULLSCREEN_KEY = "F11";
-        final String DELETE_SELECTED_KEY = "DELETE";
-
-        BindKey(ContentPane, EXIT_KEY, "Exit", this::Quit);
-        BindKey(ContentPane, FULLSCREEN_KEY, "ToggleFullscreen", this::ToggleFullscreen);
-        BindKey(ContentPane, DELETE_SELECTED_KEY, "DeleteSelected", this::DeletePerson);
+        BindKey(ContentPane, EXIT_KEY, 0, "Exit", this::Quit);
+        BindKey(ContentPane, FULLSCREEN_KEY, 0,"ToggleFullscreen", this::ToggleFullscreen);
+        BindKey(ContentPane, DELETE_SELECTED_KEY, 0,"DeleteSelected", this::DeletePerson);
+        BindKey(ContentPane, NEW_PERSON_KEY, KeyEvent.CTRL_DOWN_MASK, "NewPerson", this::NewPerson);
+        BindKey(ContentPane, SAVE_KEY, KeyEvent.CTRL_DOWN_MASK, "SaveRegister", this::SaveRegister);
+        BindKey(ContentPane, OPEN_KEY, KeyEvent.CTRL_DOWN_MASK, "OpenRegister", this::LoadRegister);
 
         SetStatus(Status.READY);
     }
@@ -112,10 +151,10 @@ public class MainRegisterUI extends JFrame {
         StatusLabel.setText("Status: " + message);
     }
 
-    private void BindKey(JComponent component, String keyStrokeString, String actionName, Runnable action) {
-        KeyStroke keyStroke = KeyStroke.getKeyStroke(keyStrokeString);
+    private void BindKey(JComponent component, int keyCode, int modifiers, String actionName, Runnable function) {
+        KeyStroke keyStroke = KeyStroke.getKeyStroke(keyCode, modifiers);
         if (keyStroke == null) {
-            System.err.println("Invalid KeyStroke: " + keyStrokeString);
+            System.err.println("Invalid KeyStroke: " + keyCode);
             return;
         }
 
@@ -133,7 +172,7 @@ public class MainRegisterUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    action.run();
+                    function.run();
                 } catch (Exception ex) {
                     System.out.println(ex.getMessage());
                 }
@@ -144,7 +183,7 @@ public class MainRegisterUI extends JFrame {
     private File LoadFileFromSystem() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setCurrentDirectory(new File("./saves"));
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Register Save Files", ".rsave"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Register Save Files", "rsave"));
 
         SetStatus(Status.AWAITING_FILE);
         int result = fileChooser.showOpenDialog(this);
@@ -153,6 +192,28 @@ public class MainRegisterUI extends JFrame {
             return fileChooser.getSelectedFile();
         }
         return null;
+    }
+
+    private File SaveFileToSystem() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new File("./saves"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Register Save Files", "rsave"));
+
+        SetStatus(Status.AWAITING_FILE);
+        int result = fileChooser.showSaveDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            return fileChooser.getSelectedFile();
+        }
+        return null;
+    }
+
+    private String FormatPerson(int id, String name) {
+        return "[" + id + "]" + ": " + name;
+    }
+
+    private int ParseID(String entry) {
+        return Integer.parseInt(entry.split(":")[0].replaceAll("[\\[\\]]","").trim());
     }
 
     // Button press functions
@@ -184,7 +245,24 @@ public class MainRegisterUI extends JFrame {
 
             if (!forename.isEmpty() && !surname.isEmpty()) {
                 String fullName = forename + " " + surname;
-                personListModel.addElement(fullName);
+
+                if (people.containsValue(fullName)) {
+                    int duplicateEntry = JOptionPane.showConfirmDialog(
+                            this,
+                            "This person already exists. Do you wish to continue?",
+                            "Duplicate Entry",
+                            JOptionPane.YES_NO_OPTION
+                    );
+
+                    if (duplicateEntry == JOptionPane.NO_OPTION) {
+                        SetStatus(Status.READY); return;
+                    }
+                }
+
+                int id = nextID++;
+                people.put(id, fullName);
+                presenceStates.put(id, PresenceState.ABSENT);
+                personListModel.addElement(FormatPerson(id, fullName));
             } else {
                 JOptionPane.showMessageDialog(
                         this,
@@ -194,6 +272,62 @@ public class MainRegisterUI extends JFrame {
                 );
             }
         }
+
+        SetStatus(Status.READY);
+    }
+
+    private void UpdatePerson() {
+        SetStatus(Status.AWAITING_INPUT);
+
+        int selectedIndex = PersonList.getSelectedIndex();
+        if (selectedIndex == -1) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Please select a person to update.",
+                    "No Person Selected",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            SetStatus(Status.READY);
+            return;
+        }
+
+        SetStatus(Status.WORKING);
+
+        String entry = personListModel.getElementAt(selectedIndex);
+
+        int id = ParseID(entry);
+        String OldFullName = people.get(id);
+
+        String newForename = ForenameField.getText().trim();
+        String newSurname = SurnameField.getText().trim();
+
+        if (newForename.isEmpty() || newSurname.isEmpty()) {
+            SetStatus(Status.AWAITING_INPUT);
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Cannot update person: Forename and/or surname field is empty.",
+                    "Update Failed",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            SetStatus(Status.READY);
+            return;
+        }
+
+        String newFullName = newForename + " " + newSurname;
+        if (newFullName.equals(OldFullName)) {
+            SetStatus(Status.AWAITING_INPUT);
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Cannot update person: No changes were made.",
+                    "Update Failed",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            SetStatus(Status.READY);
+            return;
+        }
+
+        people.put(id, newFullName);
+        personListModel.set(selectedIndex, FormatPerson(id, newFullName));
 
         SetStatus(Status.READY);
     }
@@ -214,10 +348,13 @@ public class MainRegisterUI extends JFrame {
             return;
         }
 
-        String selectedName = personListModel.getElementAt(selectedIndex);
+        String entry = personListModel.getElementAt(selectedIndex);
+        int id = ParseID(entry);
+        String selectedName = people.get(id);
+
         int confirm = JOptionPane.showConfirmDialog(
                 this,
-                "Are you sure you want to delete \"" + selectedName + "\"? This action cannot be undone!",
+                "Are you sure you want to delete \"" + selectedName + "\" (ID: " + id + ")? This action cannot be undone!",
                 "Confirm Delete",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE
@@ -229,41 +366,172 @@ public class MainRegisterUI extends JFrame {
         }
 
         SetStatus(Status.WORKING);
+        people.remove(id);
+        presenceStates.remove(id);
         personListModel.remove(selectedIndex);
         SetStatus(Status.READY);
     }
 
-    private void TogglePersonPresent() {
+    private void UpdateFieldsFromSelection() {
         int selectedIndex = PersonList.getSelectedIndex();
-
-        SetStatus(Status.AWAITING_INPUT);
         if (selectedIndex == -1) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "No person selected.",
-                    "No Selection",
-                    JOptionPane.WARNING_MESSAGE
-            );
-            SetStatus(Status.READY);
+            ForenameField.setText("");
+            SurnameField.setText("");
             return;
         }
 
-        SetStatus(Status.WORKING);
-        String selectedName = personListModel.getElementAt(selectedIndex);
+        String entry = personListModel.getElementAt(selectedIndex);
+        int id = ParseID(entry);
 
-        if (presentPeople.contains(selectedName)) {
-            presentPeople.remove(selectedName);
-        } else {
-            presentPeople.add(selectedName);
+        PresenceState state = presenceStates.getOrDefault(id, PresenceState.ABSENT);
+        SetPresenceBox.setSelectedItem(state);
+
+        String fullName = people.get(id);
+        if (fullName == null || fullName.isEmpty()) {
+            ForenameField.setText("");
+            SurnameField.setText("");
+            return;
         }
 
+        String[] parts = fullName.split(" ", 2);
+        ForenameField.setText(parts[0]);
+        SurnameField.setText(parts[1]);
+    }
+
+    private void UpdatePresence() {
+        int selectedIndex = PersonList.getSelectedIndex();
+        if (selectedIndex == -1) { return; }
+
+        String entry = personListModel.getElementAt(selectedIndex);
+        int id = ParseID(entry);
+
+        PresenceState state = (PresenceState) SetPresenceBox.getSelectedItem();
+        if (state == null) { return; }
+
+        presenceStates.put(id, state);
+        PersonList.revalidate();
         PersonList.repaint();
+    }
+
+    // For saving and exiting, we don't want the form to quit out if the saving fails, so this function returns an integer.
+    // A 0 means the save was successful, a 1 means the save was unsuccessful
+    // For the Quit() function call only, this return value is checked and the quitting is aborted if the save fails.
+    private int SaveRegister() {
+        File selectedFile = SaveFileToSystem();
+        if (selectedFile == null) {
+            SetStatus(Status.READY);
+            return 1;
+        }
+
+        String filename = selectedFile.getName();
+        SetStatus(Status.SAVING_FILE);
+
+        if (!filename.endsWith(".rsave")) {
+            filename += ".rsave";
+        }
+
+        if (selectedFile.exists()) {
+            int overwriteResponse = JOptionPane.showConfirmDialog(
+                    this,
+                    "File " + filename + " already exists. Saving this register under that filename will overwrite that file. Do you wish to continue?",
+                    "Overwrite File",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+            if (overwriteResponse == JOptionPane.NO_OPTION) {
+                SetStatus(Status.READY);
+                return 1;
+            }
+        }
+
+        try {
+            JSONObject[] peopleObjects = people.entrySet().stream()
+                    .map(entry -> {
+                        Map<String, String> map = new HashMap<>();
+                        map.put("id", entry.getKey().toString());
+                        map.put("name", entry.getValue());
+                        return new JSONObject(map);
+                    })
+                    .toArray(JSONObject[]::new);
+
+            JSONArray jsonArray = JSONHandler.ToJSONArray(peopleObjects);
+            String jsonString = JSONHandler.ToJSONString(jsonArray, 4);
+
+            FileHandler.WriteToFile(Base64Handler.EncodeString(jsonString), filename);
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Register saved successfully!",
+                    "Save successful",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        } catch (Exception err) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Error saving register: " + err.getMessage(),
+                    "Save Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            System.out.println(err.getMessage());
+            return 1;
+        }
         SetStatus(Status.READY);
+        return 0;
     }
 
     private void LoadRegister() {
         File loadedFile = LoadFileFromSystem();
-        if (loadedFile == null) { return; }
+        if (loadedFile == null) {
+            SetStatus(Status.READY);
+            return;
+        }
+
+        String filename = loadedFile.getName();
+        if (!filename.endsWith(".rsave")) {
+            filename += ".rsave";
+        }
+
+        try {
+            String encodedString = FileHandler.ReadFile(filename);
+            if (encodedString == null || encodedString.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "The selected file could not be read or is empty.",
+                        "Load Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+                SetStatus(Status.READY);
+                return;
+            }
+
+            String jsonString = Base64Handler.DecodeString(encodedString);
+            JSONArray jsonArray = JSONHandler.parseJSONArray(jsonString);
+
+            people.clear();
+            presenceStates.clear();
+            personListModel.clear();
+            nextID = 1;
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject obj = jsonArray.getJSONObject(i);
+                int id = Integer.parseInt(obj.getString("id"));
+                String name = obj.getString("name");
+
+                people.put(id, name);
+                personListModel.addElement(FormatPerson(id, name));
+
+                if (id >= nextID) { nextID = id + 1; }
+            }
+        } catch (Exception err) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Error loading register \"" + filename + "\": " + err.getMessage(),
+                    "Load Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            System.out.println(err.getMessage());
+        }
+        SetStatus(Status.READY);
     }
 
     private void ToggleFullscreen() {
@@ -299,8 +567,11 @@ public class MainRegisterUI extends JFrame {
 
         switch (result) {
             case JOptionPane.YES_OPTION:
-                SetStatus(Status.SAVING_FILE);
-                // TODO: Implement saving
+                int saveResult = SaveRegister();
+                if (saveResult == 1) {
+                    SetStatus(Status.READY);
+                    return;
+                }
                 break;
 
             case JOptionPane.NO_OPTION:
@@ -326,6 +597,11 @@ public class MainRegisterUI extends JFrame {
         StatusLabel.setFont(new Font("JetBrains Mono", Font.PLAIN, 20));
         StatusLabel.setPreferredSize(new Dimension(200, 30));
         StatusLabel.setForeground(Color.BLACK);
+
+        ReaderLabel = new JLabel("Reader: N/A");
+        ReaderLabel.setFont(new Font("JetBrains Mono", Font.PLAIN, 20));
+        ReaderLabel.setPreferredSize(new Dimension(200, 30));
+        ReaderLabel.setForeground(Color.BLACK);
 
         JPanel statusPanel = new JPanel(new BorderLayout());
         statusPanel.add(StatusLabel, BorderLayout.CENTER);
