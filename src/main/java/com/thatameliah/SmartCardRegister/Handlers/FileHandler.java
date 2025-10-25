@@ -16,8 +16,8 @@ public class FileHandler {
     }
 
     // Gets the Path to the specified file
-    private static Path GetPathToFile(String filename, String extension) {
-        return SAVES_DIRECTORY.resolve(filename + extension);
+    private static Path GetPathToFile(String filename) {
+        return SAVES_DIRECTORY.resolve(filename);
     }
 
     // Ensure the "saves" directory exists
@@ -28,8 +28,8 @@ public class FileHandler {
     }
 
     // Write a string to a file
-    public static void WriteToFile(String content, String filename, String extension) {
-        Path path = GetPathToFile(filename, extension);
+    public static void WriteToFile(String content, String filename) {
+        Path path = GetPathToFile(filename);
         try {
             EnsureDirectory();
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(path.toFile()))) {
@@ -42,8 +42,8 @@ public class FileHandler {
     }
 
     // Read file content as string
-    public static String ReadFile(String filename, String extension) {
-        Path path = GetPathToFile(filename, extension);
+    public static String ReadFile(String filename) {
+        Path path = GetPathToFile(filename);
         if (!Files.exists(path)) {
             System.err.println("File not found: " + path);
             return null;
@@ -57,8 +57,8 @@ public class FileHandler {
     }
 
     // Delete file if exists
-    public static void DeleteFile(String filename, String extension) {
-        Path path = GetPathToFile(filename, extension);
+    public static void DeleteFile(String filename) {
+        Path path = GetPathToFile(filename);
         try {
             if (Files.deleteIfExists(path)) {
                 System.out.println("Deleted file " + path);
