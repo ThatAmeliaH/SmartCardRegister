@@ -38,7 +38,7 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
 ## 16/10/25
 **Additions**
 - Added fullscreen, toggle bound to F11
-- 
+
 **Removals**
 - Removed ProgramState object
   - This was intended to store your fullscreen preference between forms, but the project is now only one form, so this was unnecessary
