@@ -11,6 +11,7 @@ import javax.swing.JSpinner.DateEditor;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.security.Key;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -132,12 +133,18 @@ public class Register extends JFrame {
         // Setup keybinds
         // Assign keys to actions
         enum Action {
+            // JFrame actions
             EXIT(KeyEvent.VK_ESCAPE),
             FULLSCREEN(KeyEvent.VK_F11),
-            NEW_STUDENT(KeyEvent.VK_N),
+            // Register actions
+            NEW(KeyEvent.VK_N),
+            EDIT(KeyEvent.VK_E),
             DELETE(KeyEvent.VK_DELETE),
+            SET_START(KeyEvent.VK_T),
+            // File actions
             SAVE(KeyEvent.VK_S),
             OPEN(KeyEvent.VK_O),
+            // Student actions
             PRESENT(KeyEvent.VK_1),
             LATE(KeyEvent.VK_2),
             ABSENT(KeyEvent.VK_3),
@@ -159,9 +166,11 @@ public class Register extends JFrame {
                 new KeyBinding(Action.FULLSCREEN, 0, "ToggleFullscreen", this::ToggleFullscreen),
 
                 // Register management actions
-                new KeyBinding(Action.NEW_STUDENT, KeyEvent.CTRL_DOWN_MASK, "NewStudent", this::NewStudent),
+                new KeyBinding(Action.NEW, KeyEvent.CTRL_DOWN_MASK, "NewStudent", this::NewStudent),
+                new KeyBinding(Action.EDIT, KeyEvent.CTRL_DOWN_MASK, "UpdateStudent", this::UpdateStudent),
                 new KeyBinding(Action.DELETE, 0, "DeleteSelected", () -> DeleteStudent(false)),
                 new KeyBinding(Action.DELETE, KeyEvent.CTRL_DOWN_MASK, "SudoDeleteSelected", () -> DeleteStudent(true)),
+                new KeyBinding(Action.SET_START, KeyEvent.CTRL_DOWN_MASK, "SetStartTime", this::UpdateStartTime),
 
                 // File management actions
                 new KeyBinding(Action.SAVE, KeyEvent.CTRL_DOWN_MASK, "SaveRegister", this::SaveRegister),
@@ -570,7 +579,7 @@ public class Register extends JFrame {
             JSONArray jsonArray = JSONHandler.ToJSONArray(peopleObjects);
 
             JSONObject startTimeObject = new JSONObject();
-            startTimeObject.put("StartTime", startTime != null ? dateFormat.format(startTime) : "Ctrl + E");
+            startTimeObject.put("StartTime", startTime != null ? dateFormat.format(startTime) : "Not Set");
             jsonArray.put(startTimeObject);
 
             String jsonString = JSONHandler.ToJSONString(jsonArray, 4);
@@ -645,7 +654,7 @@ public class Register extends JFrame {
                     } catch (ParseException err) {
                         startTime = null;
                     }
-                    StartTimeLabel.setText("Start Time: " + (startTime != null ? dateFormat.format(startTime) : "Ctrl + E"));
+                    StartTimeLabel.setText("Start Time: " + (startTime != null ? dateFormat.format(startTime) : "Not Set"));
                     continue;
                 }
 
@@ -739,7 +748,7 @@ public class Register extends JFrame {
         );
 
         final List<JMenuItem> editMenuItems = List.of(
-                new JMenuItem("Set start time (Ctrl + E)"),
+                new JMenuItem("Set start time (Ctrl + T)"),
                 new JMenuItem("Set student Present (Alt + 1)"),
                 new JMenuItem("Set student Late (Alt + 2)"),
                 new JMenuItem("Set student Absent (Alt + 3)")

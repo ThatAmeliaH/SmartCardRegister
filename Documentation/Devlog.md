@@ -94,11 +94,13 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
   - Edit (for manual overrides and start time management)
   - View (for appearance options)
   - Student (for student management options)
-- Added keybinds for presences and deleting people
-  - DELETE: Delete User (with confirmation)
-  - CTRL + DELETE: Delete User (skips confirmation message)
-  - ALT + 1/2/3: Sets the selected user to present/late/absent
-  - CTRL + Enter: Toggles a person as present/absent or late/absent depending on the start time
+- Added keybinds
+  - **DELETE**: Delete User (with confirmation)
+  - **Ctrl + Delete**: Delete User (skips confirmation message)
+  - **Alt + 1/2/3**: Sets the selected user to present/late/absent
+  - **Ctrl + Enter**: Toggles a person as present/absent or late/absent depending on the start time
+  - **Ctrl + E**: Edit selected user
+  - **Ctrl + I**: Set start time
 - Added Documentation folder
 - Added "KeyboardShortcuts.md"
 

@@ -97,7 +97,7 @@
           <enabled value="true"/>
           <font size="20" style="0"/>
           <horizontalTextPosition value="0"/>
-          <text value="Start Time: Ctrl + E"/>
+          <text value="Start Time: Not Set"/>
         </properties>
       </component>
     </children>
