@@ -1,6 +1,7 @@
 package com.thatameliah.SmartCardRegister.Handlers;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,22 +29,20 @@ public class FileHandler {
     }
 
     // Write a string to a file
-    public static void WriteToFile(String content, String filename) {
-        Path path = GetPathToFile(filename);
+    public static void WriteToFile(String content, File file) {
+        Path path = file.toPath();
         try {
-            EnsureDirectory();
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(path.toFile()))) {
-                writer.write(content);
-            }
+            Files.createDirectories(path.getParent());
+            Files.writeString(path, content);
             System.out.println("Successfully wrote to " + path);
         } catch (IOException e) {
             System.err.println("Error writing to file " + path + ": " + e.getMessage());
         }
     }
 
-    // Read file content as string
-    public static String ReadFile(String filename) {
-        Path path = GetPathToFile(filename);
+    // Read the contents of a file
+    public static String ReadFile(File file) {
+        Path path = file.toPath();
         if (!Files.exists(path)) {
             System.err.println("File not found: " + path);
             return null;

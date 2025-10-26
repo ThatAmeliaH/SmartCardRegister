@@ -473,17 +473,12 @@ public class Register extends JFrame {
             return 1;
         }
 
-        String filename = selectedFile.getName();
         SetStatus(Status.SAVING_FILE);
-
-        if (!filename.endsWith(".rsave")) {
-            filename += ".rsave";
-        }
 
         if (selectedFile.exists()) {
             int overwriteResponse = JOptionPane.showConfirmDialog(
                     this,
-                    "File " + filename + " already exists. Saving this register under that filename will overwrite that file. Do you wish to continue?",
+                    "File " + selectedFile.getName() + " already exists. Saving this register under that filename will overwrite that file. Do you wish to continue?",
                     "Overwrite File",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE
@@ -502,7 +497,7 @@ public class Register extends JFrame {
             JSONArray jsonArray = JSONHandler.ToJSONArray(peopleObjects);
             String jsonString = JSONHandler.ToJSONString(jsonArray, 4);
 
-            FileHandler.WriteToFile(Base64Handler.EncodeString(jsonString), filename);
+            FileHandler.WriteToFile(Base64Handler.EncodeString(jsonString), selectedFile);
 
             JOptionPane.showMessageDialog(
                     this,
@@ -531,10 +526,8 @@ public class Register extends JFrame {
             return;
         }
 
-        String loadedFileName = loadedFile.getName();
-
         try {
-            String encodedString = FileHandler.ReadFile(loadedFileName);
+            String encodedString = FileHandler.ReadFile(loadedFile);
             if (encodedString == null || encodedString.isEmpty()) {
                 JOptionPane.showMessageDialog(
                         this,
@@ -567,7 +560,7 @@ public class Register extends JFrame {
         } catch (Exception err) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Error loading register \"" + loadedFileName + "\": " + err.getMessage(),
+                    "Error loading register \"" + loadedFile.getName() + "\": " + err.getMessage(),
                     "Load Error",
                     JOptionPane.ERROR_MESSAGE
             );
