@@ -110,6 +110,9 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
 - Replaced all instances of the word "person" with "student"
 - Moved devlog.md to "Documentation" folder
 
+**Removals**
+- Removed unused Dataclasses folder
+
 **Fixes**
 - Issue 1 resolved on IssueOne test branch.
   - Pull request created - test branch merged to master.
