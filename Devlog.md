@@ -82,7 +82,7 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
 - Removed Resources directory and template.json
 
 **Issues**
-- Files outside the "./saves" directory cannot be selected
+- Files outside the "./saves" directory cannot be selected (Issue 1)
   - New branch (IssueOne) created from the master branch to attempt fixes.
   - [Link to GitHub issue](https://github.com/ThatAmeliaH/SmartCardRegister/issues/1)
 
@@ -97,3 +97,6 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
 - Changed DeleteUser() to take in a boolean input - "overrideWarning" - that skips the popup asking the user to confirm deleting the selected user
 - Changed the click detection and handling for the delete button
   - New system allows for CTRL Clicking, this passes true into overrideWarning making it function the same as CTRL + DELETE
+
+**Fixes**
+- Issue 1 resolved on IssueOne test branch.
