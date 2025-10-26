@@ -83,7 +83,8 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
 
 **Issues**
 - Files outside the "./saves" directory cannot be selected
-    - [Link to GitHub issue](https://github.com/ThatAmeliaH/SmartCardRegister/issues/1)
+  - New branch (IssueOne) created from the master branch to attempt fixes.
+  - [Link to GitHub issue](https://github.com/ThatAmeliaH/SmartCardRegister/issues/1)
 
 ## 26/10/25
 **Additions**
