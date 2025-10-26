@@ -19,7 +19,7 @@
           <text value="Status: N/A"/>
         </properties>
       </component>
-      <component id="3ce8c" class="javax.swing.JList" binding="PersonList">
+      <component id="3ce8c" class="javax.swing.JList" binding="StudentList">
         <constraints>
           <grid row="1" column="0" row-span="6" col-span="5" vsize-policy="6" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="50"/>

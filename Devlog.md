@@ -88,15 +88,24 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
 
 ## 26/10/25
 **Additions**
+- Added a start time input, allows the user to input the start time for automatic lateness detection
+- Added a top bar with drop down buttons
+  - File (for file management options)
+  - Edit (for manual overrides and start time management)
+  - View (for appearance options)
+  - Student (for student management options)
 - Added keybinds for presences and deleting people
   - DELETE: Delete User (with confirmation)
   - CTRL + DELETE: Delete User (skips confirmation message)
   - ALT + 1/2/3: Sets the selected user to present/late/absent
+  - CTRL + Enter: Toggles a person as present/absent or late/absent depending on the start time
 
 **Changes**
+- New UI layout, moved a lot of buttons into the new top bar
 - Changed DeleteUser() to take in a boolean input - "overrideWarning" - that skips the popup asking the user to confirm deleting the selected user
 - Changed the click detection and handling for the delete button
   - New system allows for CTRL Clicking, this passes true into overrideWarning making it function the same as CTRL + DELETE
+- Replaced all instances of the word "person" with "student"
 
 **Fixes**
 - Issue 1 resolved on IssueOne test branch.

@@ -11,13 +11,13 @@ public class JSONHandler {
         throw new UnsupportedOperationException("Handler classes are static and cannot be initialised.");
     }
 
-    /** Create a new JSON Object representing one person
+    /** Create a new JSON Object representing one student
      *
-     * @param name The person's name
-     * @param id The ID of the person
+     * @param name The student's name
+     * @param id The ID of the student
      * @return JSONObject with String "name" and String "id" fields
      */
-    public static JSONObject CreatePersonJSON(String name, String id) {
+    public static JSONObject CreateStudentJSON(String name, String id) {
         Map<String, String> hashMap = new HashMap<String, String>();
         hashMap.put("name", name);
         hashMap.put("id", id);

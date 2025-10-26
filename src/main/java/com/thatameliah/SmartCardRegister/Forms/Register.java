@@ -21,16 +21,16 @@ public class Register extends JFrame {
     private JLabel StatusLabel;
     private JLabel ReaderLabel;
     private JComboBox<PresenceState> SetPresenceBox;
-    private JList<String> PersonList;
+    private JList<String> StudentList;
     private JButton FileButton;
     private JButton EditButton;
     private JButton StudentButton;
     private JButton ViewButton;
     private JLabel StartTimeLabel;
 
-    private final DefaultListModel<String> personListModel;
+    private final DefaultListModel<String> studentListModel;
 
-    private final Map<Integer, String> people = new HashMap<>();
+    private final Map<Integer, String> students = new HashMap<>();
     private final Map<Integer, PresenceState> presenceStates = new HashMap<>();
 
     private int nextID = 1;
@@ -101,9 +101,9 @@ public class Register extends JFrame {
         ContentPane.requestFocus();
 
         // Initialise list model
-        personListModel = new DefaultListModel<>();
-        PersonList.setModel(personListModel);
-        PersonList.setCellRenderer(new DefaultListCellRenderer() {
+        studentListModel = new DefaultListModel<>();
+        StudentList.setModel(studentListModel);
+        StudentList.setCellRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
@@ -126,7 +126,7 @@ public class Register extends JFrame {
         });
 
         SetPresenceBox.setModel(new DefaultComboBoxModel<>(PresenceState.values()));
-        PersonList.addListSelectionListener(e -> UpdateFieldsFromSelection());
+        StudentList.addListSelectionListener(e -> UpdateFieldsFromSelection());
         SetPresenceBox.addActionListener(e -> UpdatePresence());
 
         // Setup keybinds
@@ -134,7 +134,7 @@ public class Register extends JFrame {
         enum Action {
             EXIT(KeyEvent.VK_ESCAPE),
             FULLSCREEN(KeyEvent.VK_F11),
-            NEW_PERSON(KeyEvent.VK_N),
+            NEW_STUDENT(KeyEvent.VK_N),
             DELETE(KeyEvent.VK_DELETE),
             SAVE(KeyEvent.VK_S),
             OPEN(KeyEvent.VK_O),
@@ -159,15 +159,15 @@ public class Register extends JFrame {
                 new KeyBinding(Action.FULLSCREEN, 0, "ToggleFullscreen", this::ToggleFullscreen),
 
                 // Register management actions
-                new KeyBinding(Action.NEW_PERSON, KeyEvent.CTRL_DOWN_MASK, "NewPerson", this::NewPerson),
-                new KeyBinding(Action.DELETE, 0, "DeleteSelected", () -> DeletePerson(false)),
-                new KeyBinding(Action.DELETE, KeyEvent.CTRL_DOWN_MASK, "SudoDeleteSelected", () -> DeletePerson(true)),
+                new KeyBinding(Action.NEW_STUDENT, KeyEvent.CTRL_DOWN_MASK, "NewStudent", this::NewStudent),
+                new KeyBinding(Action.DELETE, 0, "DeleteSelected", () -> DeleteStudent(false)),
+                new KeyBinding(Action.DELETE, KeyEvent.CTRL_DOWN_MASK, "SudoDeleteSelected", () -> DeleteStudent(true)),
 
                 // File management actions
                 new KeyBinding(Action.SAVE, KeyEvent.CTRL_DOWN_MASK, "SaveRegister", this::SaveRegister),
                 new KeyBinding(Action.OPEN, KeyEvent.CTRL_DOWN_MASK, "OpenRegister", this::LoadRegister),
 
-                // Person management actions
+                // Student management actions
                 new KeyBinding(Action.PRESENT, KeyEvent.ALT_DOWN_MASK, "SetPresent", () -> SetPresence(PresenceState.PRESENT)),
                 new KeyBinding(Action.LATE, KeyEvent.ALT_DOWN_MASK, "SetLate", () -> SetPresence(PresenceState.LATE)),
                 new KeyBinding(Action.ABSENT, KeyEvent.ALT_DOWN_MASK, "SetAbsent", () -> SetPresence(PresenceState.ABSENT)),
@@ -259,7 +259,7 @@ public class Register extends JFrame {
     }
 
     // Button press functions
-    private void NewPerson() {
+    private void NewStudent() {
         SetStatus(Status.AWAITING_INPUT);
 
         JPanel inputPanel = new JPanel(new GridLayout(2, 2, 5, 5));
@@ -276,7 +276,7 @@ public class Register extends JFrame {
         int result = JOptionPane.showConfirmDialog(
                 this,
                 inputPanel,
-                "New Person",
+                "New Student",
                 JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE
         );
@@ -290,12 +290,13 @@ public class Register extends JFrame {
             if (!forename.isEmpty() && !surname.isEmpty()) {
                 String fullName = forename + " " + surname;
 
-                if (people.containsValue(fullName)) {
+                if (students.containsValue(fullName)) {
                     int duplicateEntry = JOptionPane.showConfirmDialog(
                             this,
-                            "This person already exists. Do you wish to continue?",
+                            "A student already exists with this name. Do you wish to continue?",
                             "Duplicate Entry",
-                            JOptionPane.YES_NO_OPTION
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE
                     );
 
                     if (duplicateEntry == JOptionPane.NO_OPTION) {
@@ -304,9 +305,9 @@ public class Register extends JFrame {
                 }
 
                 int id = nextID++;
-                people.put(id, fullName);
+                students.put(id, fullName);
                 presenceStates.put(id, PresenceState.ABSENT);
-                personListModel.addElement(FormatListString(id, fullName));
+                studentListModel.addElement(FormatListString(id, fullName));
             } else {
                 JOptionPane.showMessageDialog(
                         this,
@@ -320,15 +321,15 @@ public class Register extends JFrame {
         SetStatus(Status.READY);
     }
 
-    private void UpdatePerson() {
+    private void UpdateStudent() {
         SetStatus(Status.AWAITING_INPUT);
 
-        int selectedIndex = PersonList.getSelectedIndex();
+        int selectedIndex = StudentList.getSelectedIndex();
         if (selectedIndex == -1) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Please select a person to update.",
-                    "No Person Selected",
+                    "Please select a student to update.",
+                    "No Student Selected",
                     JOptionPane.WARNING_MESSAGE
             );
             SetStatus(Status.READY);
@@ -337,10 +338,10 @@ public class Register extends JFrame {
 
         SetStatus(Status.WORKING);
 
-        String entry = personListModel.getElementAt(selectedIndex);
+        String entry = studentListModel.getElementAt(selectedIndex);
 
         int id = ParseIdFromListString(entry);
-        String OldFullName = people.get(id);
+        String OldFullName = students.get(id);
         String[] parts = OldFullName.split("", 2);
         String oldForename = parts[0].replaceFirst(" ","");
         String oldSurname = parts[1].replaceFirst(" ","");
@@ -359,7 +360,7 @@ public class Register extends JFrame {
         int result = JOptionPane.showConfirmDialog(
                 this,
                 inputPanel,
-                "Update Person",
+                "Update Student",
                 JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE
         );
@@ -377,7 +378,7 @@ public class Register extends JFrame {
             SetStatus(Status.AWAITING_INPUT);
             JOptionPane.showMessageDialog(
                     this,
-                    "Cannot update person: Forename and/or surname field is empty.",
+                    "Cannot update student: Forename and/or surname field is empty.",
                     "Update Failed",
                     JOptionPane.WARNING_MESSAGE
             );
@@ -390,7 +391,7 @@ public class Register extends JFrame {
             SetStatus(Status.AWAITING_INPUT);
             JOptionPane.showMessageDialog(
                     this,
-                    "Cannot update person: No changes were made.",
+                    "Cannot update student: No changes were made.",
                     "Update Failed",
                     JOptionPane.INFORMATION_MESSAGE
             );
@@ -398,20 +399,20 @@ public class Register extends JFrame {
             return;
         }
 
-        people.put(id, newFullName);
-        personListModel.set(selectedIndex, FormatListString(id, newFullName));
+        students.put(id, newFullName);
+        studentListModel.set(selectedIndex, FormatListString(id, newFullName));
         SetStatus(Status.READY);
     }
 
-    private void DeletePerson(boolean OverrideWarning) {
+    private void DeleteStudent(boolean OverrideWarning) {
         SetStatus(Status.AWAITING_INPUT);
 
-        int selectedIndex = PersonList.getSelectedIndex();
+        int selectedIndex = StudentList.getSelectedIndex();
 
         if (selectedIndex == -1) {
             JOptionPane.showMessageDialog(
                     this,
-                    "No person is selected to be deleted.",
+                    "No student is selected to be deleted.",
                     "No Selection",
                     JOptionPane.WARNING_MESSAGE
             );
@@ -419,9 +420,9 @@ public class Register extends JFrame {
             return;
         }
 
-        String entry = personListModel.getElementAt(selectedIndex);
+        String entry = studentListModel.getElementAt(selectedIndex);
         int id = ParseIdFromListString(entry);
-        String selectedName = people.get(id);
+        String selectedName = students.get(id);
 
         if (!OverrideWarning) {
             int confirm = JOptionPane.showConfirmDialog(
@@ -439,9 +440,9 @@ public class Register extends JFrame {
         }
 
         SetStatus(Status.WORKING);
-        people.remove(id);
+        students.remove(id);
         presenceStates.remove(id);
-        personListModel.remove(selectedIndex);
+        studentListModel.remove(selectedIndex);
         SetStatus(Status.READY);
     }
 
@@ -482,10 +483,10 @@ public class Register extends JFrame {
     }
 
     private void UpdateFieldsFromSelection() {
-        int selectedIndex = PersonList.getSelectedIndex();
+        int selectedIndex = StudentList.getSelectedIndex();
         if (selectedIndex == -1) { return; }
 
-        String entry = personListModel.getElementAt(selectedIndex);
+        String entry = studentListModel.getElementAt(selectedIndex);
         int id = ParseIdFromListString(entry);
 
         PresenceState state = presenceStates.getOrDefault(id, PresenceState.ABSENT);
@@ -493,25 +494,25 @@ public class Register extends JFrame {
     }
 
     private void UpdatePresence() {
-        int selectedIndex = PersonList.getSelectedIndex();
+        int selectedIndex = StudentList.getSelectedIndex();
         if (selectedIndex == -1) { return; }
 
-        String entry = personListModel.getElementAt(selectedIndex);
+        String entry = studentListModel.getElementAt(selectedIndex);
         int id = ParseIdFromListString(entry);
 
         PresenceState state = (PresenceState) SetPresenceBox.getSelectedItem();
         if (state == null) { return; }
 
         presenceStates.put(id, state);
-        PersonList.revalidate();
-        PersonList.repaint();
+        StudentList.revalidate();
+        StudentList.repaint();
     }
 
     private void TogglePresent() {
-        int selectedIndex = PersonList.getSelectedIndex();
+        int selectedIndex = StudentList.getSelectedIndex();
         if (selectedIndex == -1) { return; }
 
-        String entry = personListModel.getElementAt(selectedIndex);
+        String entry = studentListModel.getElementAt(selectedIndex);
         int id = ParseIdFromListString(entry);
 
         PresenceState currentState = presenceStates.getOrDefault(id, PresenceState.ABSENT);
@@ -527,8 +528,8 @@ public class Register extends JFrame {
         presenceStates.put(id, newState);
         SetPresenceBox.setSelectedItem(newState);
 
-        PersonList.revalidate();
-        PersonList.repaint();
+        StudentList.revalidate();
+        StudentList.repaint();
     }
 
     private void SetPresence(PresenceState newPresence) {
@@ -562,8 +563,8 @@ public class Register extends JFrame {
         }
 
         try {
-            JSONObject[] peopleObjects = people.entrySet().stream()
-                    .map(entry -> JSONHandler.CreatePersonJSON(entry.getValue(), entry.getKey().toString()))
+            JSONObject[] peopleObjects = students.entrySet().stream()
+                    .map(entry -> JSONHandler.CreateStudentJSON(entry.getValue(), entry.getKey().toString()))
                     .toArray(JSONObject[]::new);
 
             JSONArray jsonArray = JSONHandler.ToJSONArray(peopleObjects);
@@ -618,9 +619,9 @@ public class Register extends JFrame {
             String jsonString = Base64Handler.DecodeString(encodedString);
             JSONArray jsonArray = JSONHandler.parseJSONArray(jsonString);
 
-            people.clear();
+            students.clear();
             presenceStates.clear();
-            personListModel.clear();
+            studentListModel.clear();
             nextID = 1;
             startTime = null;
 
@@ -651,8 +652,8 @@ public class Register extends JFrame {
                 int id = Integer.parseInt(obj.getString("id"));
                 String name = obj.getString("name");
 
-                people.put(id, name);
-                personListModel.addElement(FormatListString(id, name));
+                students.put(id, name);
+                studentListModel.addElement(FormatListString(id, name));
 
                 if (id >= nextID) { nextID = id + 1; }
             }
@@ -781,9 +782,9 @@ public class Register extends JFrame {
 
         JPopupMenu studentPopupMenu = new JPopupMenu();
         AddMenuActions(studentMenuItems,
-                this::NewPerson,
-                this::UpdatePerson,
-                () -> DeletePerson(false),
+                this::NewStudent,
+                this::UpdateStudent,
+                () -> DeleteStudent(false),
                 this::TogglePresent
         );
         studentMenuItems.forEach(studentPopupMenu::add);
