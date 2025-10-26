@@ -75,11 +75,15 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
 - Changed person presence to use an Enum and HashMap from a boolean
 - Refactored JSONObject[] creation in SaveRegister() to use the JSONHandler
 - Changed the X button on the JFrame to trigger the Save prompt
-- Changed the keybind input detection to use an Enum and a List so I don't make a typo and break everything
+- Changed the keybind input detection to use an Enum and a List, so I don't make a typo and break everything
 
 **Removals**
 - Removed unused Person.kt and Person.java data classes
 - Removed Resources directory and template.json
+
+**Issues**
+- Files outside the "./saves" directory cannot be selected
+    - [Link to GitHub issue](https://github.com/ThatAmeliaH/SmartCardRegister/issues/1)
 
 ## 26/10/25
 **Additions**

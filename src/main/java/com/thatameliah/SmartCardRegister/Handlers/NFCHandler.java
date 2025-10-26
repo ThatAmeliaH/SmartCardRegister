@@ -7,14 +7,20 @@ public class NFCHandler {
     // TODO: Make this static, test at college with my ID Card
     public static void main(String[] args) throws Exception {
         TerminalFactory factory = TerminalFactory.getDefault();
-        List<CardTerminal> terminals = factory.terminals().list();
 
-        if (terminals.isEmpty()) {
+        List<CardTerminal> terminalsList = null;
+        try {
+            terminalsList = factory.terminals().list();
+            if (terminalsList == null || terminalsList.isEmpty()) {
+                System.err.println("No card readers found. Please check your reader drivers and PC/SC service.");
+                return;
+            }
+        } catch (CardException err) {
             System.err.println("No card readers found. Please check your reader drivers and PC/SC service.");
             return;
         }
 
-        CardTerminal terminal = terminals.get(0);
+        CardTerminal terminal = terminalsList.get(0);
         System.out.println("Using terminal: " + terminal.getName());
         System.out.println("Waiting for card...");
 
@@ -30,7 +36,7 @@ public class NFCHandler {
 
         // Send command to get UID (works on many MIFARE / NFC-A cards)
         // Command: FF CA 00 00 00 — used by PC/SC readers to get the card UID
-        byte[] getUidCommand = new byte[] {
+        byte[] getUidCommand = new byte[]{
                 (byte) 0xFF, (byte) 0xCA, (byte) 0x00, (byte) 0x00, (byte) 0x00
         };
 

@@ -165,16 +165,20 @@ public class Register extends JFrame {
         record KeyBinding(Action action, int modifiers, String name, Runnable handler) {}
 
         final List<KeyBinding> keybinds = List.of(
+                // JFrame actions
                 new KeyBinding(Action.EXIT, 0, "Exit", this::Quit),
                 new KeyBinding(Action.FULLSCREEN, 0, "ToggleFullscreen", this::ToggleFullscreen),
 
+                // Register management actions
                 new KeyBinding(Action.NEW_PERSON, KeyEvent.CTRL_DOWN_MASK, "NewPerson", this::NewPerson),
                 new KeyBinding(Action.DELETE, 0, "DeleteSelected", () -> DeletePerson(false)),
                 new KeyBinding(Action.DELETE, KeyEvent.CTRL_DOWN_MASK, "SudoDeleteSelected", () -> DeletePerson(true)),
 
+                // File management actions
                 new KeyBinding(Action.SAVE, KeyEvent.CTRL_DOWN_MASK, "SaveRegister", this::SaveRegister),
                 new KeyBinding(Action.OPEN, KeyEvent.CTRL_DOWN_MASK, "OpenRegister", this::LoadRegister),
 
+                // Person management actions
                 new KeyBinding(Action.PRESENT, KeyEvent.ALT_DOWN_MASK, "SetPresent", () -> SetPresence(PresenceState.PRESENT)),
                 new KeyBinding(Action.LATE, KeyEvent.ALT_DOWN_MASK, "SetLate", () -> SetPresence(PresenceState.LATE)),
                 new KeyBinding(Action.ABSENT, KeyEvent.ALT_DOWN_MASK, "SetAbsent", () -> SetPresence(PresenceState.ABSENT))
@@ -213,13 +217,9 @@ public class Register extends JFrame {
 
         inputMap.put(keyStroke, actionName);
         actionMap.put(actionName, new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    function.run();
-                } catch (Exception ex) {
-                    System.out.println(ex.getMessage());
-                }
+            @Override public void actionPerformed(ActionEvent e) {
+                try { function.run(); }
+                catch (Exception ex) { System.err.println(ex.getMessage()); }
             }
         });
     }
@@ -532,9 +532,6 @@ public class Register extends JFrame {
         }
 
         String loadedFileName = loadedFile.getName();
-        if (!loadedFileName.endsWith(".rsave")) {
-            loadedFileName += ".rsave";
-        }
 
         try {
             String encodedString = FileHandler.ReadFile(loadedFileName);
