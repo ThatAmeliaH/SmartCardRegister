@@ -116,5 +116,18 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
 - Removed unused Dataclasses folder
 
 **Fixes**
-- Issue 1 resolved on IssueOne test branch.
-  - Pull request created - test branch merged to master.
+- Issue 1 resolved on IssueOne test branch
+  - Pull request created - test branch merged onto master
+
+**Issues**
+- No limit to student names (Issue 6)
+  - [Link to GitHub issue](https://github.com/ThatAmeliaH/SmartCardRegister/issues/6)
+- No duplicate checking when updating a student (Issue 7)
+  - [Link to GitHub issue](https://github.com/ThatAmeliaH/SmartCardRegister/issues/7)
+- Incorrect forename/surname splitting (Issue 8)
+  - [Link to GitHub issue](https://github.com/ThatAmeliaH/SmartCardRegister/issues/8)
+
+**27/10/25**
+**Fixes**
+- Issues 6, 7 and 8 resolved on test branch
+  - Pull request created - test branch merged onto master

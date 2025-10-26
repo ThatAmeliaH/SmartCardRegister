@@ -11,7 +11,6 @@ import javax.swing.JSpinner.DateEditor;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.security.Key;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -28,6 +27,8 @@ public class Register extends JFrame {
     private JButton StudentButton;
     private JButton ViewButton;
     private JLabel StartTimeLabel;
+
+    private final int MAX_NAME_LENGTH = 25;
 
     private final DefaultListModel<String> studentListModel;
 
@@ -292,40 +293,56 @@ public class Register extends JFrame {
 
         SetStatus(Status.WORKING);
 
-        if (result == JOptionPane.OK_OPTION) {
-            String forename = forenameField.getText().trim();
-            String surname = surnameField.getText().trim();
+        if (result != JOptionPane.OK_OPTION) {
+            SetStatus(Status.READY);
+            return;
+        }
 
-            if (!forename.isEmpty() && !surname.isEmpty()) {
-                String fullName = forename + " " + surname;
+        String forename = forenameField.getText().trim();
+        String surname = surnameField.getText().trim();
 
-                if (students.containsValue(fullName)) {
-                    int duplicateEntry = JOptionPane.showConfirmDialog(
-                            this,
-                            "A student already exists with this name. Do you wish to continue?",
-                            "Duplicate Entry",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.WARNING_MESSAGE
-                    );
+        if (forename.length() > MAX_NAME_LENGTH || surname.length() > MAX_NAME_LENGTH) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Forename or surname is too long. Inputs cannot be greater than " + String.valueOf(MAX_NAME_LENGTH) + " characters.",
+                    "Invalid Input",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            SetStatus(Status.READY);
+            return;
+        }
 
-                    if (duplicateEntry == JOptionPane.NO_OPTION) {
-                        SetStatus(Status.READY); return;
-                    }
-                }
+        if (forename.isEmpty() || surname.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Please enter both a forename and a surname.",
+                    "Incomplete Information",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            SetStatus(Status.READY);
+            return;
+        }
 
-                int id = nextID++;
-                students.put(id, fullName);
-                presenceStates.put(id, PresenceState.ABSENT);
-                studentListModel.addElement(FormatListString(id, fullName));
-            } else {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Please enter both a forename and a surname.",
-                        "Incomplete Information",
-                        JOptionPane.WARNING_MESSAGE
-                );
+        String fullName = forename + " " + surname;
+
+        if (students.containsValue(fullName)) {
+            int duplicateEntry = JOptionPane.showConfirmDialog(
+                    this,
+                    "A student already exists with this name. Do you wish to continue?",
+                    "Duplicate Entry",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if (duplicateEntry == JOptionPane.NO_OPTION) {
+                SetStatus(Status.READY); return;
             }
         }
+
+        int id = nextID++;
+        students.put(id, fullName);
+        presenceStates.put(id, PresenceState.ABSENT);
+        studentListModel.addElement(FormatListString(id, fullName));
 
         SetStatus(Status.READY);
     }
@@ -351,7 +368,7 @@ public class Register extends JFrame {
 
         int id = ParseIdFromListString(entry);
         String OldFullName = students.get(id);
-        String[] parts = OldFullName.split("", 2);
+        String[] parts = OldFullName.split(" ", 2);
         String oldForename = parts[0].replaceFirst(" ","");
         String oldSurname = parts[1].replaceFirst(" ","");
 
@@ -395,6 +412,17 @@ public class Register extends JFrame {
             return;
         }
 
+        if (newForename.length() > MAX_NAME_LENGTH || newSurname.length() > MAX_NAME_LENGTH) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Forename or surname is too long. Inputs cannot be greater than " + String.valueOf(MAX_NAME_LENGTH) + " characters.",
+                    "Invalid Input",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            SetStatus(Status.READY);
+            return;
+        }
+
         String newFullName = newForename + " " + newSurname;
         if (newFullName.equals(OldFullName)) {
             SetStatus(Status.AWAITING_INPUT);
@@ -406,6 +434,20 @@ public class Register extends JFrame {
             );
             SetStatus(Status.READY);
             return;
+        }
+
+        if (students.containsValue(newFullName)) {
+            int duplicateEntry = JOptionPane.showConfirmDialog(
+                    this,
+                    "A student already exists with this name. Do you wish to continue?",
+                    "Duplicate Entry",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if (duplicateEntry == JOptionPane.NO_OPTION) {
+                SetStatus(Status.READY); return;
+            }
         }
 
         students.put(id, newFullName);
