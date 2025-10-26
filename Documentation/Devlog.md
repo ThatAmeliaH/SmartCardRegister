@@ -99,6 +99,8 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
   - CTRL + DELETE: Delete User (skips confirmation message)
   - ALT + 1/2/3: Sets the selected user to present/late/absent
   - CTRL + Enter: Toggles a person as present/absent or late/absent depending on the start time
+- Added Documentation folder
+- Added "KeyboardShortcuts.md"
 
 **Changes**
 - New UI layout, moved a lot of buttons into the new top bar
@@ -106,6 +108,7 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
 - Changed the click detection and handling for the delete button
   - New system allows for CTRL Clicking, this passes true into overrideWarning making it function the same as CTRL + DELETE
 - Replaced all instances of the word "person" with "student"
+- Moved devlog.md to "Documentation" folder
 
 **Fixes**
 - Issue 1 resolved on IssueOne test branch.
