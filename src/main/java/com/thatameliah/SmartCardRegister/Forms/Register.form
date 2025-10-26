@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.thatameliah.SmartCardRegister.Forms.Register">
-  <grid id="27dc6" binding="ContentPane" layout-manager="GridLayoutManager" row-count="7" column-count="5" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="ContentPane" layout-manager="GridLayoutManager" row-count="8" column-count="8" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="677" height="407"/>
+      <xy x="20" y="20" width="699" height="407"/>
     </constraints>
     <properties/>
     <border type="bevel-raised"/>
     <children>
       <component id="137ae" class="javax.swing.JLabel" binding="StatusLabel" custom-create="true">
         <constraints>
-          <grid row="6" column="3" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="6" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="7" column="5" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="6" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <enabled value="true"/>
@@ -21,69 +21,15 @@
       </component>
       <component id="3ce8c" class="javax.swing.JList" binding="PersonList">
         <constraints>
-          <grid row="1" column="0" row-span="5" col-span="3" vsize-policy="6" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false">
+          <grid row="1" column="0" row-span="6" col-span="5" vsize-policy="6" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="50"/>
           </grid>
         </constraints>
         <properties/>
       </component>
-      <component id="cb212" class="javax.swing.JButton" binding="NewPersonButton">
-        <constraints>
-          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Create New Person"/>
-          <toolTipText value="Add a new person to the register. (Ctrl + N)"/>
-        </properties>
-      </component>
-      <component id="4547f" class="javax.swing.JButton" binding="DeleteSelectedButton" default-binding="true">
-        <constraints>
-          <grid row="6" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Delete Selected Person"/>
-          <toolTipText value="Delete the selected person from the register. (Del)"/>
-        </properties>
-      </component>
-      <component id="ac6da" class="javax.swing.JButton" binding="SaveFileButton">
-        <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Save Register File"/>
-          <toolTipText value="Save the current register to a .rsave file. (Ctrl + S)"/>
-        </properties>
-      </component>
-      <component id="dae54" class="javax.swing.JButton" binding="OpenFileButton">
-        <constraints>
-          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Open Register File"/>
-          <toolTipText value="Open the register stored in a .rsave file. (Ctrl + O)"/>
-        </properties>
-      </component>
-      <component id="a6860" class="javax.swing.JButton" binding="CloseFileButton">
-        <constraints>
-          <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Close Register File"/>
-          <toolTipText value="Close the current register. (Esc)"/>
-        </properties>
-      </component>
-      <component id="15bc" class="javax.swing.JComboBox" binding="SetPresenceBox">
-        <constraints>
-          <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <font style="1"/>
-          <toolTipText value="Set the presence state for the selected person."/>
-        </properties>
-      </component>
       <component id="ac800" class="javax.swing.JLabel" binding="ReaderLabel" custom-create="true">
         <constraints>
-          <grid row="5" column="3" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="6" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="6" column="5" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="6" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <enabled value="true"/>
@@ -94,32 +40,64 @@
       </component>
       <vspacer id="e5ef0">
         <constraints>
-          <grid row="4" column="4" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <grid row="4" column="7" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
       </vspacer>
-      <component id="e3782" class="javax.swing.JTextField" binding="ForenameField">
+      <component id="8e22" class="javax.swing.JButton" binding="FileButton" custom-create="true">
         <constraints>
-          <grid row="1" column="3" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="0" fill="0" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="-1"/>
-          </grid>
-        </constraints>
-        <properties/>
-      </component>
-      <component id="fe116" class="javax.swing.JTextField" binding="SurnameField">
-        <constraints>
-          <grid row="2" column="3" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="0" fill="0" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="-1"/>
-          </grid>
-        </constraints>
-        <properties/>
-      </component>
-      <component id="31a61" class="javax.swing.JButton" binding="UpdatePersonButton">
-        <constraints>
-          <grid row="3" column="3" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Update Person"/>
-          <toolTipText value="Update the selected person's name with the above name fields."/>
+          <text value="📁 File"/>
+        </properties>
+      </component>
+      <component id="e5fe" class="javax.swing.JButton" binding="EditButton" custom-create="true">
+        <constraints>
+          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="📝 Edit"/>
+        </properties>
+      </component>
+      <component id="c0391" class="javax.swing.JButton" binding="StudentButton" custom-create="true">
+        <constraints>
+          <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="👤 Student"/>
+        </properties>
+      </component>
+      <component id="2b911" class="javax.swing.JButton" binding="ViewButton" custom-create="true">
+        <constraints>
+          <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="👁 View"/>
+        </properties>
+      </component>
+      <hspacer id="2039a">
+        <constraints>
+          <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </hspacer>
+      <component id="15bc" class="javax.swing.JComboBox" binding="SetPresenceBox">
+        <constraints>
+          <grid row="7" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <toolTipText value="Set the presence state for the selected person."/>
+        </properties>
+      </component>
+      <component id="9fb76" class="javax.swing.JLabel" binding="StartTimeLabel" custom-create="true">
+        <constraints>
+          <grid row="5" column="5" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="6" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <enabled value="true"/>
+          <font size="20" style="0"/>
+          <horizontalTextPosition value="0"/>
+          <text value="Start Time: Ctrl + E"/>
         </properties>
       </component>
     </children>
