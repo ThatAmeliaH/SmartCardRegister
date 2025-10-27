@@ -850,28 +850,28 @@ public class Register extends JFrame {
         // Create drop down buttons
         final int iconSize = UIManager.getFont("Menu.font").getSize() + 2;
 
-        FileButton = new JButton("\uD83D\uDCC1 File");
+        FileButton = new JButton("File");
         FileButton.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
         FileButton.setFocusPainted(false);
         FileButton.setBackground(new Color(240, 240, 240));
         FileButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         FileButton.addActionListener(event -> filePopupMenu.show(FileButton, 0, FileButton.getHeight()));
 
-        EditButton = new JButton("\uD83D\uDCDD Edit");
+        EditButton = new JButton("Edit");
         EditButton.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
         EditButton.setFocusPainted(false);
         EditButton.setBackground(new Color(240, 240, 240));
         EditButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         EditButton.addActionListener(event -> editPopupMenu.show(EditButton, 0, EditButton.getHeight()));
 
-        ViewButton = new JButton("\uD83D\uDC41 View");
+        ViewButton = new JButton("View");
         ViewButton.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
         ViewButton.setFocusPainted(false);
         ViewButton.setBackground(new Color(240, 240, 240));
         ViewButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         ViewButton.addActionListener(event -> viewPopupMenu.show(ViewButton, 0, ViewButton.getHeight()));
 
-        StudentButton = new JButton("\uD83D\uDC64 Student");
+        StudentButton = new JButton("Student");
         StudentButton.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
         StudentButton.setFocusPainted(false);
         StudentButton.setBackground(new Color(240, 240, 240));
