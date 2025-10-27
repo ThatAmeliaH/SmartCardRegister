@@ -111,6 +111,9 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
   - New system allows for CTRL Clicking, this passes true into overrideWarning making it function the same as CTRL + DELETE
 - Replaced all instances of the word "person" with "student"
 - Moved devlog.md to "Documentation" folder
+- Main development halted on Windows 11, software will now be developed primarily on [Linux Mint](https://linuxmint.com/)
+  - Most tests will be performed on this operating system, and the UI will be designed around how it appears on Mint
+  - Some tests and UI tweaks will be performed on a Windows 11 machine, both in college and through my stakeholders
 
 **Removals**
 - Removed unused Dataclasses folder
@@ -126,8 +129,14 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
   - [Link to GitHub issue](https://github.com/ThatAmeliaH/SmartCardRegister/issues/7)
 - Incorrect forename/surname splitting (Issue 8)
   - [Link to GitHub issue](https://github.com/ThatAmeliaH/SmartCardRegister/issues/8)
+- Emojis not showing up in header buttons on Linux machines (Issue 10)
+  - [Link to GitHub issue](https://github.com/ThatAmeliaH/SmartCardRegister/issues/10)
 
 **27/10/25**
+**Changes**
+- Removed emojis from header buttons - see Issue 10
+
 **Fixes**
 - Issues 6, 7 and 8 resolved on test branch
   - Pull request created - test branch merged onto master
+- Issue 10 workaround deployed to main branch (see "**Changes**")

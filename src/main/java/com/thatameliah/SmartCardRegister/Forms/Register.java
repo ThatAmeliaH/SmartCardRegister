@@ -231,6 +231,13 @@ public class Register extends JFrame {
         }
     }
 
+    private ImageIcon loadScaledIcon(String path, int size) {
+        ImageIcon icon = new ImageIcon(path);
+        Image image = icon.getImage();
+        Image scaled = image.getScaledInstance(size, size, Image.SCALE_SMOOTH);
+        return new ImageIcon(scaled);
+    }
+
     private File LoadFileFromSystem() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setCurrentDirectory(new File("./saves"));
@@ -275,8 +282,8 @@ public class Register extends JFrame {
         JPanel inputPanel = new JPanel(new GridLayout(2, 2, 5, 5));
         JTextField forenameField = new JTextField();
         JTextField surnameField = new JTextField();
-        forenameField.setFont(new Font("JetBrains Mono", Font.PLAIN, 14));
-        surnameField.setFont(new Font("JetBrains Mono", Font.PLAIN, 14));
+        forenameField.setFont(new Font("Liberation Sans", Font.PLAIN, 14));
+        surnameField.setFont(new Font("Liberation Sans", Font.PLAIN, 14));
 
         inputPanel.add(new JLabel("Forename:"));
         inputPanel.add(forenameField);
@@ -375,8 +382,8 @@ public class Register extends JFrame {
         JPanel inputPanel = new JPanel(new GridLayout(2, 2, 5, 5));
         JTextField forenameField = new JTextField(oldForename);
         JTextField surnameField = new JTextField(oldSurname);
-        forenameField.setFont(new Font("JetBrains Mono", Font.PLAIN, 14));
-        surnameField.setFont(new Font("JetBrains Mono", Font.PLAIN, 14));
+        forenameField.setFont(new Font("Liberation Sans", Font.PLAIN, 14));
+        surnameField.setFont(new Font("Liberation Sans", Font.PLAIN, 14));
 
         inputPanel.add(new JLabel("Forename:"));
         inputPanel.add(forenameField);
@@ -841,6 +848,8 @@ public class Register extends JFrame {
         studentMenuItems.forEach(studentPopupMenu::add);
 
         // Create drop down buttons
+        final int iconSize = UIManager.getFont("Menu.font").getSize() + 2;
+
         FileButton = new JButton("\uD83D\uDCC1 File");
         FileButton.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
         FileButton.setFocusPainted(false);
