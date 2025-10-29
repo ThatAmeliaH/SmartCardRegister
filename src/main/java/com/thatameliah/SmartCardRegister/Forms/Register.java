@@ -622,17 +622,17 @@ public class Register extends JFrame {
 
         try {
             JSONObject[] peopleObjects = students.entrySet().stream()
-                    .map(entry -> JSONHandler.CreateStudentJSON(entry.getValue(), entry.getKey().toString()))
+                    .map(entry -> JSONHandler.createStudentJSON(entry.getValue(), entry.getKey().toString()))
                     .toArray(JSONObject[]::new);
 
-            JSONArray jsonArray = JSONHandler.ToJSONArray(peopleObjects);
+            JSONArray jsonArray = JSONHandler.toJSONArray(peopleObjects);
 
             JSONObject startTimeObject = new JSONObject();
             startTimeObject.put("StartTime", startTime != null ? dateFormat.format(startTime) : "Not Set");
             jsonArray.put(startTimeObject);
 
-            String jsonString = JSONHandler.ToJSONString(jsonArray, 4);
-            FileHandler.WriteToFile(Base64Handler.EncodeString(jsonString), selectedFile);
+            String jsonString = JSONHandler.toJSONString(jsonArray, 4);
+            FileHandler.writeToFile(Objects.requireNonNull(Base64Handler.encodeString(jsonString)), selectedFile);
 
             JOptionPane.showMessageDialog(
                     this,
@@ -662,7 +662,7 @@ public class Register extends JFrame {
         }
 
         try {
-            String encodedString = FileHandler.ReadFile(loadedFile);
+            String encodedString = FileHandler.readFile(loadedFile);
             if (encodedString == null || encodedString.isEmpty()) {
                 JOptionPane.showMessageDialog(
                         this,
@@ -674,7 +674,7 @@ public class Register extends JFrame {
                 return;
             }
 
-            String jsonString = Base64Handler.DecodeString(encodedString);
+            String jsonString = Base64Handler.decodeString(encodedString);
             JSONArray jsonArray = JSONHandler.parseJSONArray(jsonString);
 
             students.clear();
