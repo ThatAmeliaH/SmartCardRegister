@@ -1,18 +1,17 @@
 package com.thatameliah.SmartCardRegister.Handlers;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class FileHandler {
+@Deprecated
+public class FileHandlerDeprecated {
     private static final Path SAVES_DIRECTORY = Paths.get("saves");
 
     // Private constructor, prevents accidental initialisation
-    private FileHandler() {
+    private FileHandlerDeprecated() {
         throw new UnsupportedOperationException("Handler classes are static and cannot be initialised.");
     }
 

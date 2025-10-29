@@ -5,9 +5,10 @@ import org.json.JSONObject;
 
 import java.util.*;
 
-public class JSONHandler {
+@Deprecated
+public class JSONHandlerDeprecated {
     // Private constructor, prevents accidental initialisation
-    private JSONHandler() {
+    private JSONHandlerDeprecated() {
         throw new UnsupportedOperationException("Handler classes are static and cannot be initialised.");
     }
 
