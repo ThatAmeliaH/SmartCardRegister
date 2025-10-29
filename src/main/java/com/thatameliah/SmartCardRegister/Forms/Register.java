@@ -85,7 +85,7 @@ public class Register extends JFrame {
         final int V_HEIGHT = (int) HEIGHT / 2;
         final double WIDTH = SCREEN_SIZE.getWidth();
         final int V_WIDTH = (int) WIDTH / 2;
-        
+
         // JFrame configuration
         setTitle("Register");
         setSize(V_WIDTH, V_HEIGHT);
