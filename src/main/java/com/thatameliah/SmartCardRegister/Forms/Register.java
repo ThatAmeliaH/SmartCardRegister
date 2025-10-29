@@ -20,7 +20,7 @@ public class Register extends JFrame {
     private JPanel ContentPane;
     private JLabel StatusLabel;
     private JLabel ReaderLabel;
-    private JComboBox<PresenceState> SetPresenceBox;
+    private JComboBox<Presence> SetPresenceBox;
     private JList<String> StudentList;
     private JButton FileButton;
     private JButton EditButton;
@@ -33,7 +33,7 @@ public class Register extends JFrame {
     private final DefaultListModel<String> studentListModel;
 
     private final Map<Integer, String> students = new HashMap<>();
-    private final Map<Integer, PresenceState> presenceStates = new HashMap<>();
+    private final Map<Integer, Presence> presenceStates = new HashMap<>();
 
     private int nextID = 1;
 
@@ -53,7 +53,7 @@ public class Register extends JFrame {
         LOADING_FILE,
     }
 
-    public enum PresenceState {
+    public enum Presence {
         PRESENT,
         ABSENT,
         LATE,
@@ -69,10 +69,10 @@ public class Register extends JFrame {
         put(Status.LOADING_FILE, "Loading File");
     }};
 
-    private final Map<PresenceState, Color> PRESENCE_MAP = new HashMap<>() {{
-        put(PresenceState.PRESENT, Color.GREEN);
-        put(PresenceState.ABSENT, Color.PINK);
-        put(PresenceState.LATE, Color.ORANGE);
+    private final Map<Presence, Color> PRESENCE_MAP = new HashMap<>() {{
+        put(Presence.PRESENT, new Color(150, 255, 150));
+        put(Presence.ABSENT, new Color(255, 150, 200));
+        put(Presence.LATE, new Color(255, 200, 50));
     }};
 
     // Main form constructor
@@ -112,7 +112,7 @@ public class Register extends JFrame {
                 String entry = (String) value;
 
                 int id = ParseIdFromListString(entry);
-                PresenceState state = presenceStates.getOrDefault(id, PresenceState.ABSENT);
+                Presence state = presenceStates.getOrDefault(id, Presence.ABSENT);
 
                 if (isSelected) {
                     label.setBackground(list.getSelectionBackground());
@@ -127,7 +127,7 @@ public class Register extends JFrame {
             }
         });
 
-        SetPresenceBox.setModel(new DefaultComboBoxModel<>(PresenceState.values()));
+        SetPresenceBox.setModel(new DefaultComboBoxModel<>(Presence.values()));
         StudentList.addListSelectionListener(e -> UpdateFieldsFromSelection());
         SetPresenceBox.addActionListener(e -> UpdatePresence());
 
@@ -161,7 +161,7 @@ public class Register extends JFrame {
         // Assign actions to functions
         record KeyBinding(Action action, int modifiers, String name, Runnable handler) {}
 
-        final List<KeyBinding> keybinds = List.of(
+        final List<KeyBinding> keyBindings = List.of(
                 // JFrame actions
                 new KeyBinding(Action.EXIT, 0, "Exit", this::Quit),
                 new KeyBinding(Action.FULLSCREEN, 0, "ToggleFullscreen", this::ToggleFullscreen),
@@ -178,14 +178,14 @@ public class Register extends JFrame {
                 new KeyBinding(Action.OPEN, KeyEvent.CTRL_DOWN_MASK, "OpenRegister", this::LoadRegister),
 
                 // Student management actions
-                new KeyBinding(Action.PRESENT, KeyEvent.ALT_DOWN_MASK, "SetPresent", () -> SetPresence(PresenceState.PRESENT)),
-                new KeyBinding(Action.LATE, KeyEvent.ALT_DOWN_MASK, "SetLate", () -> SetPresence(PresenceState.LATE)),
-                new KeyBinding(Action.ABSENT, KeyEvent.ALT_DOWN_MASK, "SetAbsent", () -> SetPresence(PresenceState.ABSENT)),
+                new KeyBinding(Action.PRESENT, KeyEvent.ALT_DOWN_MASK, "SetPresent", () -> SetPresence(Presence.PRESENT)),
+                new KeyBinding(Action.LATE, KeyEvent.ALT_DOWN_MASK, "SetLate", () -> SetPresence(Presence.LATE)),
+                new KeyBinding(Action.ABSENT, KeyEvent.ALT_DOWN_MASK, "SetAbsent", () -> SetPresence(Presence.ABSENT)),
                 new KeyBinding(Action.TOGGLE_PRESENT, KeyEvent.CTRL_DOWN_MASK, "TogglePresent", this::TogglePresent)
         );
 
-        // Bind functions to keypresses
-        for (var kb : keybinds) {
+        // Bind functions to key presses
+        for (var kb : keyBindings) {
             BindKey(kb.action.keyCode, kb.modifiers, kb.name, kb.handler);
         }
 
@@ -348,7 +348,7 @@ public class Register extends JFrame {
 
         int id = nextID++;
         students.put(id, fullName);
-        presenceStates.put(id, PresenceState.ABSENT);
+        presenceStates.put(id, Presence.ABSENT);
         studentListModel.addElement(FormatListString(id, fullName));
 
         SetStatus(Status.READY);
@@ -547,7 +547,7 @@ public class Register extends JFrame {
         String entry = studentListModel.getElementAt(selectedIndex);
         int id = ParseIdFromListString(entry);
 
-        PresenceState state = presenceStates.getOrDefault(id, PresenceState.ABSENT);
+        Presence state = presenceStates.getOrDefault(id, Presence.ABSENT);
         SetPresenceBox.setSelectedItem(state);
     }
 
@@ -558,7 +558,7 @@ public class Register extends JFrame {
         String entry = studentListModel.getElementAt(selectedIndex);
         int id = ParseIdFromListString(entry);
 
-        PresenceState state = (PresenceState) SetPresenceBox.getSelectedItem();
+        Presence state = (Presence) SetPresenceBox.getSelectedItem();
         if (state == null) { return; }
 
         presenceStates.put(id, state);
@@ -573,14 +573,14 @@ public class Register extends JFrame {
         String entry = studentListModel.getElementAt(selectedIndex);
         int id = ParseIdFromListString(entry);
 
-        PresenceState currentState = presenceStates.getOrDefault(id, PresenceState.ABSENT);
-        PresenceState newState;
+        Presence currentState = presenceStates.getOrDefault(id, Presence.ABSENT);
+        Presence newState;
 
         Date now = new Date();
         if (startTime != null && now.before(startTime)) {
-            newState = (currentState == PresenceState.PRESENT) ? PresenceState.ABSENT : PresenceState.PRESENT;
+            newState = (currentState == Presence.PRESENT) ? Presence.ABSENT : Presence.PRESENT;
         } else {
-            newState = (currentState == PresenceState.LATE) ? PresenceState.ABSENT : PresenceState.LATE;
+            newState = (currentState == Presence.LATE) ? Presence.ABSENT : Presence.LATE;
         }
 
         presenceStates.put(id, newState);
@@ -590,7 +590,7 @@ public class Register extends JFrame {
         StudentList.repaint();
     }
 
-    private void SetPresence(PresenceState newPresence) {
+    private void SetPresence(Presence newPresence) {
         SetPresenceBox.setSelectedItem(newPresence);
     }
 
@@ -826,9 +826,9 @@ public class Register extends JFrame {
         JPopupMenu editPopupMenu = new JPopupMenu();
         AddMenuActions(editMenuItems,
                 this::UpdateStartTime,
-                () -> SetPresence(PresenceState.PRESENT),
-                () -> SetPresence(PresenceState.LATE),
-                () -> SetPresence(PresenceState.ABSENT)
+                () -> SetPresence(Presence.PRESENT),
+                () -> SetPresence(Presence.LATE),
+                () -> SetPresence(Presence.ABSENT)
         );
         editMenuItems.forEach(editPopupMenu::add);
 
