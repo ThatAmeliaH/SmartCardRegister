@@ -1,0 +1,20 @@
+plugins {
+    id 'java'
+    id 'scala'
+}
+
+group = 'com.thatameliah'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // https://mvnrepository.com/artifact/org.json/json
+    implementation("org.json:json:20250517")
+}
+
+test {
+    useJUnitPlatform()
+}
