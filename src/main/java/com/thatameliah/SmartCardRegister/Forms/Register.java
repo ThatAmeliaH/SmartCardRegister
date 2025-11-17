@@ -39,10 +39,10 @@ public class Register extends JFrame {
 
     private final int MAX_NAME_LENGTH = 25;
 
-    private final DefaultListModel<String> studentListModel;
+    private final DefaultListModel<String> STUDENT_LIST_MODEL;
 
-    private final Map<Integer, String> students = new HashMap<>();
-    private final Map<Integer, Presence> presenceStates = new HashMap<>();
+    private final Map<Integer, String> STUDENTS = new HashMap<>();
+    private final Map<Integer, Presence> PRESENCE_STATES = new HashMap<>();
 
     private record Shortcut(int keyCode, int modifiers, String name, Runnable handler) {}
 
@@ -51,7 +51,7 @@ public class Register extends JFrame {
     private boolean isFullscreen = false;
     private Rectangle windowedBounds;
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
+    private final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm");
     private Date startTime;
 
     public enum Status {
@@ -114,15 +114,15 @@ public class Register extends JFrame {
         ContentPane.requestFocus();
 
         // Initialise list model
-        studentListModel = new DefaultListModel<>();
-        StudentList.setModel(studentListModel);
+        STUDENT_LIST_MODEL = new DefaultListModel<>();
+        StudentList.setModel(STUDENT_LIST_MODEL);
         StudentList.setCellRenderer(new DefaultListCellRenderer() {
             @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 String entry = (String) value;
 
                 int id = ParseIdFromListString(entry);
-                Presence state = presenceStates.getOrDefault(id, Presence.ABSENT);
+                Presence state = PRESENCE_STATES.getOrDefault(id, Presence.ABSENT);
 
                 if (isSelected) {
                     label.setBackground(list.getSelectionBackground());
@@ -143,7 +143,7 @@ public class Register extends JFrame {
 
         // Setup shortcuts
         // Assign keys to functions
-        final Shortcut[] shortcuts = {
+        final Shortcut[] SHORTCUTS = {
                 // JFrame actions
                 new Shortcut(KeyEvent.VK_ESCAPE, 0, "Exit", this::Quit),
                 new Shortcut(KeyEvent.VK_F11, 0, "ToggleFullscreen", this::ToggleFullscreen),
@@ -167,7 +167,7 @@ public class Register extends JFrame {
         };
 
         // Bind functions to key presses
-        for (var shortcut : shortcuts) { BindKey(shortcut); }
+        for (var shortcut : SHORTCUTS) { BindKey(shortcut); }
 
         // Setup complete - set status to READY
         SetStatus(Status.READY);
@@ -306,7 +306,7 @@ public class Register extends JFrame {
 
         String fullName = forename + " " + surname;
 
-        if (students.containsValue(fullName)) {
+        if (STUDENTS.containsValue(fullName)) {
             int duplicateEntry = JOptionPane.showConfirmDialog(
                     this,
                     "A student already exists with this name. Do you wish to continue?",
@@ -321,9 +321,9 @@ public class Register extends JFrame {
         }
 
         int id = nextID++;
-        students.put(id, fullName);
-        presenceStates.put(id, Presence.ABSENT);
-        studentListModel.addElement(FormatListString(id, fullName));
+        STUDENTS.put(id, fullName);
+        PRESENCE_STATES.put(id, Presence.ABSENT);
+        STUDENT_LIST_MODEL.addElement(FormatListString(id, fullName));
 
         SetStatus(Status.READY);
     }
@@ -345,10 +345,10 @@ public class Register extends JFrame {
 
         SetStatus(Status.WORKING);
 
-        String entry = studentListModel.getElementAt(selectedIndex);
+        String entry = STUDENT_LIST_MODEL.getElementAt(selectedIndex);
 
         int id = ParseIdFromListString(entry);
-        String OldFullName = students.get(id);
+        String OldFullName = STUDENTS.get(id);
         String[] parts = OldFullName.split(" ", 2);
         String oldForename = parts[0].replaceFirst(" ","");
         String oldSurname = parts[1].replaceFirst(" ","");
@@ -417,7 +417,7 @@ public class Register extends JFrame {
             return;
         }
 
-        if (students.containsValue(newFullName)) {
+        if (STUDENTS.containsValue(newFullName)) {
             int duplicateEntry = JOptionPane.showConfirmDialog(
                     this,
                     "A student already exists with this name. Do you wish to continue?",
@@ -431,8 +431,8 @@ public class Register extends JFrame {
             }
         }
 
-        students.put(id, newFullName);
-        studentListModel.set(selectedIndex, FormatListString(id, newFullName));
+        STUDENTS.put(id, newFullName);
+        STUDENT_LIST_MODEL.set(selectedIndex, FormatListString(id, newFullName));
         SetStatus(Status.READY);
     }
 
@@ -452,9 +452,9 @@ public class Register extends JFrame {
             return;
         }
 
-        String entry = studentListModel.getElementAt(selectedIndex);
+        String entry = STUDENT_LIST_MODEL.getElementAt(selectedIndex);
         int id = ParseIdFromListString(entry);
-        String selectedName = students.get(id);
+        String selectedName = STUDENTS.get(id);
 
         if (!OverrideWarning) {
             int confirm = JOptionPane.showConfirmDialog(
@@ -472,9 +472,9 @@ public class Register extends JFrame {
         }
 
         SetStatus(Status.WORKING);
-        students.remove(id);
-        presenceStates.remove(id);
-        studentListModel.remove(selectedIndex);
+        STUDENTS.remove(id);
+        PRESENCE_STATES.remove(id);
+        STUDENT_LIST_MODEL.remove(selectedIndex);
         SetStatus(Status.READY);
     }
 
@@ -511,17 +511,17 @@ public class Register extends JFrame {
         startTime = today.getTime();
 
 
-        StartTimeLabel.setText("Start Time: " + dateFormat.format(startTime));
+        StartTimeLabel.setText("Start Time: " + DATE_FORMAT.format(startTime));
     }
 
     private void UpdateFieldsFromSelection() {
         int selectedIndex = StudentList.getSelectedIndex();
         if (selectedIndex == -1) { return; }
 
-        String entry = studentListModel.getElementAt(selectedIndex);
+        String entry = STUDENT_LIST_MODEL.getElementAt(selectedIndex);
         int id = ParseIdFromListString(entry);
 
-        Presence state = presenceStates.getOrDefault(id, Presence.ABSENT);
+        Presence state = PRESENCE_STATES.getOrDefault(id, Presence.ABSENT);
         SetPresenceBox.setSelectedItem(state);
     }
 
@@ -529,13 +529,13 @@ public class Register extends JFrame {
         int selectedIndex = StudentList.getSelectedIndex();
         if (selectedIndex == -1) { return; }
 
-        String entry = studentListModel.getElementAt(selectedIndex);
+        String entry = STUDENT_LIST_MODEL.getElementAt(selectedIndex);
         int id = ParseIdFromListString(entry);
 
         Presence state = (Presence) SetPresenceBox.getSelectedItem();
         if (state == null) { return; }
 
-        presenceStates.put(id, state);
+        PRESENCE_STATES.put(id, state);
         StudentList.revalidate();
         StudentList.repaint();
     }
@@ -544,10 +544,10 @@ public class Register extends JFrame {
         int selectedIndex = StudentList.getSelectedIndex();
         if (selectedIndex == -1) { return; }
 
-        String entry = studentListModel.getElementAt(selectedIndex);
+        String entry = STUDENT_LIST_MODEL.getElementAt(selectedIndex);
         int id = ParseIdFromListString(entry);
 
-        Presence currentState = presenceStates.getOrDefault(id, Presence.ABSENT);
+        Presence currentState = PRESENCE_STATES.getOrDefault(id, Presence.ABSENT);
         Presence newState;
 
         Date now = new Date();
@@ -557,7 +557,7 @@ public class Register extends JFrame {
             newState = (currentState == Presence.LATE) ? Presence.ABSENT : Presence.LATE;
         }
 
-        presenceStates.put(id, newState);
+        PRESENCE_STATES.put(id, newState);
         SetPresenceBox.setSelectedItem(newState);
 
         StudentList.revalidate();
@@ -597,14 +597,14 @@ public class Register extends JFrame {
         }
 
         try {
-            JSONObject[] peopleObjects = students.entrySet().stream()
+            JSONObject[] peopleObjects = STUDENTS.entrySet().stream()
                     .map(entry -> JSONHandler.CreateStudentJSON(entry.getValue(), entry.getKey().toString()))
                     .toArray(JSONObject[]::new);
 
             JSONArray jsonArray = JSONHandler.ToJSONArray(peopleObjects);
 
             JSONObject startTimeObject = new JSONObject();
-            startTimeObject.put("StartTime", startTime != null ? dateFormat.format(startTime) : "Not Set");
+            startTimeObject.put("StartTime", startTime != null ? DATE_FORMAT.format(startTime) : "Not Set");
             jsonArray.put(startTimeObject);
 
             String jsonString = JSONHandler.ToJSONString(jsonArray, 4);
@@ -653,9 +653,9 @@ public class Register extends JFrame {
             String jsonString = Base64Handler.DecodeString(encodedString);
             JSONArray jsonArray = JSONHandler.ParseJSONArray(jsonString);
 
-            students.clear();
-            presenceStates.clear();
-            studentListModel.clear();
+            STUDENTS.clear();
+            PRESENCE_STATES.clear();
+            STUDENT_LIST_MODEL.clear();
             nextID = 1;
             startTime = null;
 
@@ -665,7 +665,7 @@ public class Register extends JFrame {
                 if (obj.has("StartTime")) {
                     String timeString = obj.getString("StartTime");
                     try {
-                        Date timeOnly = dateFormat.parse(timeString);
+                        Date timeOnly = DATE_FORMAT.parse(timeString);
                         Calendar today = Calendar.getInstance();
                         Calendar cal = Calendar.getInstance();
                         cal.setTime(timeOnly);
@@ -679,15 +679,15 @@ public class Register extends JFrame {
                     } catch (ParseException err) {
                         startTime = null;
                     }
-                    StartTimeLabel.setText("Start Time: " + (startTime != null ? dateFormat.format(startTime) : "Not Set"));
+                    StartTimeLabel.setText("Start Time: " + (startTime != null ? DATE_FORMAT.format(startTime) : "Not Set"));
                     continue;
                 }
 
                 int id = Integer.parseInt(obj.getString("id"));
                 String name = obj.getString("name");
 
-                students.put(id, name);
-                studentListModel.addElement(FormatListString(id, name));
+                STUDENTS.put(id, name);
+                STUDENT_LIST_MODEL.addElement(FormatListString(id, name));
 
                 if (id >= nextID) { nextID = id + 1; }
             }
@@ -773,14 +773,14 @@ public class Register extends JFrame {
         statusPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         // "Menu" drop-down sub buttons:
-        final List<JMenuItem> fileMenuItems = List.of(
+        final List<JMenuItem> FILE_MENU_ITEMS = List.of(
                 new JMenuItem("Save (Ctrl + S)"),
                 new JMenuItem("Open File (Ctrl + O)"),
                 new JMenuItem("Exit (Escape)")
         );
 
         // "Edit" drop-down sub buttons:
-        final List<JMenuItem> editMenuItems = List.of(
+        final List<JMenuItem> EDIT_MENU_ITEMS = List.of(
                 new JMenuItem("Set start time (Ctrl + T)"),
                 new JMenuItem("Set student Present (Alt + 1)"),
                 new JMenuItem("Set student Late (Alt + 2)"),
@@ -788,12 +788,12 @@ public class Register extends JFrame {
         );
 
         // "View" drop-down sub buttons:
-        final List<JMenuItem> viewMenuItems = List.of(
+        final List<JMenuItem> VIEW_MENU_ITEMS = List.of(
                 new JMenuItem("Toggle Fullscreen (F11)")
         );
 
         // "Student" drop-down sub buttons:
-        final List<JMenuItem> studentMenuItems = List.of(
+        final List<JMenuItem> STUDENT_MENU_ITEMS = List.of(
                 new JMenuItem("New student (Ctrl + N)"),
                 new JMenuItem("Edit selected student (Ctrl + E)"),
                 new JMenuItem("Delete selected student (Delete)"),
@@ -802,39 +802,39 @@ public class Register extends JFrame {
 
         // "File" button popup menu
         JPopupMenu filePopupMenu = new JPopupMenu();
-        AddMenuActions(fileMenuItems,
+        AddMenuActions(FILE_MENU_ITEMS,
                 this::SaveRegister,
                 this::LoadRegister,
                 this::Quit
         );
-        fileMenuItems.forEach(filePopupMenu::add);
+        FILE_MENU_ITEMS.forEach(filePopupMenu::add);
 
         // "Edit" button popup menu
         JPopupMenu editPopupMenu = new JPopupMenu();
-        AddMenuActions(editMenuItems,
+        AddMenuActions(EDIT_MENU_ITEMS,
                 this::UpdateStartTime,
                 () -> SetPresence(Presence.PRESENT),
                 () -> SetPresence(Presence.LATE),
                 () -> SetPresence(Presence.ABSENT)
         );
-        editMenuItems.forEach(editPopupMenu::add);
+        EDIT_MENU_ITEMS.forEach(editPopupMenu::add);
 
         // "View" button popup menu
         JPopupMenu viewPopupMenu = new JPopupMenu();
-        AddMenuActions(viewMenuItems,
+        AddMenuActions(VIEW_MENU_ITEMS,
                 this::ToggleFullscreen
         );
-        viewMenuItems.forEach(viewPopupMenu::add);
+        VIEW_MENU_ITEMS.forEach(viewPopupMenu::add);
 
         // "Student" button popup menu
         JPopupMenu studentPopupMenu = new JPopupMenu();
-        AddMenuActions(studentMenuItems,
+        AddMenuActions(STUDENT_MENU_ITEMS,
                 this::NewStudent,
                 this::UpdateStudent,
                 () -> DeleteStudent(false),
                 this::TogglePresent
         );
-        studentMenuItems.forEach(studentPopupMenu::add);
+        STUDENT_MENU_ITEMS.forEach(studentPopupMenu::add);
 
         // "File" drop down button
         FileButton = new JButton("File");

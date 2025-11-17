@@ -1,6 +1,4 @@
 ﻿Hello! Most changes will be summarised here, and I'll use this file to keep track of how I'm getting on with the project.
-Note that this file is different to Snippets.ipynb, in that this is for release notes, and Snippets is for notes to myself and small sections of code.
-TL;DR: Snippets is more for me to talk to myself, this file is more for me to talk to you.
 
 # Development Log
 ## 10/10/25
@@ -55,7 +53,7 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
 - Added ability to mark people as present/absent
 - Added ability to delete people from register
 - Added Status label
-- Added additional keybinds (ESC for quit, DEL to delete a person)
+- Added additional keyboard shortcuts (ESC for quit, DEL to delete a person)
 - Added confirmation popups to most actions
 
 **Fixes**
@@ -68,14 +66,14 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
     - File format is .rsave, which contains a JSONArray of people, formatted into a string, and encoded in Base64
 - Added ability to mark people as present/late/absent
 - Added ability to edit a person after they've been created
-- Added more keybinds (CTRL + O to open file, CTRL + N to create a person, CTRL + S to save to file)
+- Added more keyboard shortcuts (CTRL + O to open file, CTRL + N to create a person, CTRL + S to save to file)
 
 **Changes**
 - Changed Status label to use an Enum and HashMap from a raw string
 - Changed person presence to use an Enum and HashMap from a boolean
 - Refactored JSONObject[] creation in SaveRegister() to use the JSONHandler
 - Changed the X button on the JFrame to trigger the Save prompt
-- Changed the keybind input detection to use an Enum and a List, so I don't make a typo and break everything
+- Changed the keyboard shortcut input detection to use an Enum and a List, so I don't make a typo and break everything
 
 **Removals**
 - Removed unused Person.kt and Person.java data classes
@@ -94,7 +92,7 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
     - Edit (for manual overrides and start time management)
     - View (for appearance options)
     - Student (for student management options)
-- Added keybinds
+- Added keyboard shortcuts
     - **DELETE**: Delete User (with confirmation)
     - **Ctrl + Delete**: Delete User (skips confirmation message)
     - **Alt + 1/2/3**: Sets the selected user to present/late/absent
@@ -132,7 +130,7 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
 - Emojis not showing up in header buttons on Linux machines (Issue 10)
     - [Link to GitHub issue](https://github.com/ThatAmeliaH/SmartCardRegister/issues/10)
 
-**27/10/25**
+## 27/10/25
 **Changes**
 - Removed emojis from header buttons - see Issue 10
 
@@ -141,20 +139,33 @@ TL;DR: Snippets is more for me to talk to myself, this file is more for me to ta
     - Pull request created - test branch merged onto master
 - Issue 10 workaround deployed to main branch (see "**Changes**")
 
-**05/11/25**
+## 05/11/25
 **Changes**
 - Rewrote Kotlin handler classes in Scala
     - This allows me to work on my project in college, as the college computers do not have a Kotlin compiler installed
     - Handlers are set up as singleton objects, akin to static Java classes or Kotlin object instances.
 
-**06/11/25**
+## 06/11/25
 **Changes**
 - Changed handler functions to be more null safe
     - Functions no longer return null, instead blank strings/arrays
 
-  **07/11/25**
-  **Additions**
-    - Added a basic loading screen, will likely show loading progress in the future
+## 07/11/25
+**Additions**
+- Added a basic loading screen, will likely show loading progress in the future
 
-  **Changes**
-    - Changed shortcuts list to instead use an array
+**Changes**
+- Changed shortcuts list to instead use an array
+
+## 17/11/25
+**Additions**
+- Added Pseudocode.md to Documentation
+- Added timing to the initial startup, program now outputs the time taken for the register UI to load.
+
+**Changes**
+- Change Gradle wrapper to Groovy, replacing Kotlin
+  - This allows for the program to compile properly on my college computer, where Kotlin is not configured
+- Renamed constant variables to use all capital letters
+
+**Removals**
+- Removed "Snippets.ipynb"
