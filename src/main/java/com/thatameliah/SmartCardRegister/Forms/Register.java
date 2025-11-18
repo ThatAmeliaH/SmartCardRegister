@@ -218,7 +218,7 @@ public class Register extends JFrame {
      * @param items The list of items to bind the functions to
      * @param actions The array of runnable functions to bind
      */
-    private void AddMenuActions(@NotNull List<JMenuItem> items, Runnable @NotNull... actions) {
+    private void AddMenuActions(@NotNull List<JMenuItem> items, Runnable... actions) {
         if (items.size() != actions.length) {
             System.err.println("Size mismatch: List of size " + items.size() + " bound to runnable array of length " + actions.length);
         }
