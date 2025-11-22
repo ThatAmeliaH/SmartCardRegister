@@ -169,3 +169,8 @@
 
 **Removals**
 - Removed "Snippets.ipynb"
+
+## 21/11/25
+- Added "NFCHandler.scala"
+- Added "NFCTesting.java"
+  - NFCTesting provides a second entry point to the program, for testing NFC reader integration and functionality

@@ -10,6 +10,12 @@ object NFCHandler {
   private val terminals: util.List[CardTerminal] = factory.terminals.list
   private val terminal = terminals.getFirst
 
+  /**
+   * One full pass of the PC/SC handshake to get a UID from a presented smart card.
+   *
+   * @param timeout The amount of time to wait for card present and card absent. 0 waits indefinitely.
+   * @return The UID of the presented card as a String of Hex values
+   */
   def GetUIDFromCard(timeout: Long): String = {
     terminal.waitForCardPresent(timeout)
 
@@ -26,21 +32,28 @@ object NFCHandler {
     ToHex(UID)
   }
 
+  /**
+   * Connect to a smart card using a wildcard protocol.
+   *
+   * @return The card that has been connected
+   */
   private def ConnectToCard: Card = {
-    try {
-      terminal.connect("*")
-    } catch {
-      case _: CardException => null
-    }
+    try { terminal.connect("*") }
+    catch { case _: CardException => null }
   }
 
+  /**
+   * Transmits the standard command to the presented card
+   *
+   * @param card The card to transmit to
+   * @return The response from the card
+   */
   private def TransmitStandardCommand(card: Card): ResponseAPDU = {
     val channel: CardChannel = card.getBasicChannel
     val command: CommandAPDU = new CommandAPDU(ToByteArray(standardCommand))
 
-    try {
-      channel.transmit(command)
-    } catch {
+    try { channel.transmit(command) }
+    catch {
       case _: CardException => null
       case err: Exception => card.disconnect(false) throw err
     }
