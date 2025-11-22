@@ -1,4 +1,4 @@
-﻿package com.thatameliah.SmartCardRegister.Utils
+package com.thatameliah.SmartCardRegister.Utils
 
 import javax.smartcardio._
 import java.math.BigInteger
@@ -55,7 +55,7 @@ object NFCHandler {
     try { channel.transmit(command) }
     catch {
       case _: CardException => null
-      case err: Exception => card.disconnect(false) throw err
+      case err: Exception => card.disconnect(false); throw err
     }
   }
 
