@@ -20,3 +20,7 @@
 - Set selected student to _LATE_: **Alt + 2**
 - Set selected student to _ABSENT_: **Alt + 3**
 - Toggle presence for selected student (time dependant): **Ctrl + Enter**
+
+**Card Terminal**
+- Select active terminal: Alt + T
+- Refresh connected terminals list: Alt + R

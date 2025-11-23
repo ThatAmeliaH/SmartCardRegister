@@ -9,6 +9,8 @@ import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.smartcardio.*;
+
 import javax.swing.*;
 import javax.swing.filechooser.*;
 import javax.swing.JSpinner.DateEditor;
@@ -28,7 +30,7 @@ import java.util.List;
 public class Register extends JFrame {
     private JPanel ContentPane;
     private JLabel StatusLabel;
-    private JLabel ReaderLabel;
+    private JLabel TerminalLabel;
     private JComboBox<Presence> SetPresenceBox;
     private JList<String> StudentList;
     private JButton FileButton;
@@ -36,6 +38,7 @@ public class Register extends JFrame {
     private JButton StudentButton;
     private JButton ViewButton;
     private JLabel StartTimeLabel;
+    private JButton TerminalButton;
 
     private final int MAX_NAME_LENGTH = 25;
 
@@ -44,7 +47,7 @@ public class Register extends JFrame {
     private final Map<Integer, String> STUDENTS = new HashMap<>();
     private final Map<Integer, Presence> PRESENCE_STATES = new HashMap<>();
 
-    private record Shortcut(int keyCode, int modifiers, String name, Runnable handler) {}
+    private record Shortcut(String name, int keyCode, int modifiers, Runnable handler) {}
 
     private int nextID = 1;
 
@@ -145,29 +148,35 @@ public class Register extends JFrame {
         // Assign keys to functions
         final Shortcut[] SHORTCUTS = {
                 // JFrame actions
-                new Shortcut(KeyEvent.VK_ESCAPE, 0, "Exit", this::Quit),
-                new Shortcut(KeyEvent.VK_F11, 0, "ToggleFullscreen", this::ToggleFullscreen),
+                new Shortcut("Exit", KeyEvent.VK_ESCAPE, 0, this::Quit),
+                new Shortcut("ToggleFullscreen", KeyEvent.VK_F11, 0, this::ToggleFullscreen),
 
                 // Register management actions
-                new Shortcut(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK, "NewStudent", this::NewStudent),
-                new Shortcut(KeyEvent.VK_E, KeyEvent.CTRL_DOWN_MASK, "UpdateStudent", this::UpdateStudent),
-                new Shortcut(KeyEvent.VK_DELETE, 0, "DeleteSelected", () -> DeleteStudent(false)),
-                new Shortcut(KeyEvent.VK_DELETE, KeyEvent.CTRL_DOWN_MASK, "SudoDeleteSelected", () -> DeleteStudent(true)),
-                new Shortcut(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK, "SetStartTime", this::UpdateStartTime),
+                new Shortcut("NewStudent", KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK, this::NewStudent),
+                new Shortcut("UpdateStudent", KeyEvent.VK_E, KeyEvent.CTRL_DOWN_MASK, this::UpdateStudent),
+                new Shortcut("DeleteSelected", KeyEvent.VK_DELETE, 0, () -> DeleteStudent(false)),
+                new Shortcut("SudoDeleteSelected", KeyEvent.VK_DELETE, KeyEvent.CTRL_DOWN_MASK, () -> DeleteStudent(true)),
+                new Shortcut("SetStartTime", KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK, this::UpdateStartTime),
 
                 // File management actions
-                new Shortcut(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK, "SaveRegister", this::SaveRegister),
-                new Shortcut(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK, "OpenRegister", this::LoadRegister),
+                new Shortcut("SaveRegister", KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK, this::SaveRegister),
+                new Shortcut("OpenRegister", KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK, this::LoadRegister),
 
                 // Student management actions
-                new Shortcut(KeyEvent.VK_1, KeyEvent.ALT_DOWN_MASK, "SetPresent", () -> SetPresence(Presence.PRESENT)),
-                new Shortcut(KeyEvent.VK_2, KeyEvent.ALT_DOWN_MASK, "SetLate", () -> SetPresence(Presence.LATE)),
-                new Shortcut(KeyEvent.VK_3, KeyEvent.ALT_DOWN_MASK, "SetAbsent", () -> SetPresence(Presence.ABSENT)),
-                new Shortcut(KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK, "TogglePresent", this::TogglePresent)
+                new Shortcut("SetPresent", KeyEvent.VK_1, KeyEvent.ALT_DOWN_MASK, () -> SetPresence(Presence.PRESENT)),
+                new Shortcut("SetLate", KeyEvent.VK_2, KeyEvent.ALT_DOWN_MASK, () -> SetPresence(Presence.LATE)),
+                new Shortcut("SetAbsent", KeyEvent.VK_3, KeyEvent.ALT_DOWN_MASK, () -> SetPresence(Presence.ABSENT)),
+                new Shortcut("TogglePresent", KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK, this::TogglePresent),
+
+                // Terminal management actions
+                new Shortcut("SetActiveTerminal", KeyEvent.VK_T, KeyEvent.SHIFT_DOWN_MASK, this::SetActiveTerminal),
+                new Shortcut("RefreshConnectedTerminals", KeyEvent.VK_R, KeyEvent.SHIFT_DOWN_MASK, NFCHandler::RefreshTerminals)
         };
 
         // Bind functions to key presses
         for (var shortcut : SHORTCUTS) { BindKey(shortcut); }
+
+        TerminalLabel.setText("Terminal: " + NFCHandler.GetActiveTerminalName());
 
         // Setup complete - set status to READY
         SetStatus(Status.READY);
@@ -725,6 +734,42 @@ public class Register extends JFrame {
         }
     }
 
+    private void SetActiveTerminal() {
+        final List<CardTerminal> TERMINALS = NFCHandler.GetTerminals();
+        if (TERMINALS.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "No terminals detected. Try refreshing connected terminals with Shift + R.",
+                    "No Terminals Detected",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        String[] terminalNames = new String[TERMINALS.size()];
+        for (int i = 0; i < terminalNames.length; i++) {
+            terminalNames[i] = "[" + i + "]: " +  TERMINALS.get(i).getName();
+        }
+
+        JComboBox<String> comboBox = new JComboBox<>(terminalNames);
+
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                comboBox,
+                "Select new active terminal",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (result == JOptionPane.OK_OPTION) {
+            int selected = comboBox.getSelectedIndex();
+            if (selected >= 0) {
+                NFCHandler.SetActiveTerminal(selected);
+                TerminalLabel.setText("Terminal: " + NFCHandler.GetActiveTerminalName());
+            }
+        }
+    }
+
     public void Quit() {
         SetStatus(Status.AWAITING_INPUT);
         int saveResult = JOptionPane.showConfirmDialog(
@@ -800,6 +845,12 @@ public class Register extends JFrame {
                 new JMenuItem("Toggle student present (Ctrl + Enter)")
         );
 
+        // "Terminal" drop-down sub buttons:
+        final List<JMenuItem> TERMINAL_MENU_ITEMS = List.of(
+                new JMenuItem("Select active terminal (Shift + T)"),
+                new JMenuItem("Refresh connected terminals (Shift + R)")
+        );
+
         // "File" button popup menu
         JPopupMenu filePopupMenu = new JPopupMenu();
         AddMenuActions(FILE_MENU_ITEMS,
@@ -836,6 +887,14 @@ public class Register extends JFrame {
         );
         STUDENT_MENU_ITEMS.forEach(studentPopupMenu::add);
 
+        // "Terminal" button popup menu
+        JPopupMenu terminalPopupMenu = new JPopupMenu();
+        AddMenuActions(TERMINAL_MENU_ITEMS,
+                this::SetActiveTerminal,
+                NFCHandler::RefreshTerminals
+        );
+        TERMINAL_MENU_ITEMS.forEach(terminalPopupMenu::add);
+
         // "File" drop down button
         FileButton = new JButton("File");
         FileButton.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
@@ -868,6 +927,14 @@ public class Register extends JFrame {
         StudentButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         StudentButton.addActionListener(event -> studentPopupMenu.show(StudentButton, 0, StudentButton.getHeight()));
 
+        // "Terminal" drop down button
+        TerminalButton = new JButton("Terminal");
+        TerminalButton.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
+        TerminalButton.setFocusPainted(false);
+        TerminalButton.setBackground(new Color(240, 240, 240));
+        TerminalButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        TerminalButton.addActionListener(event -> terminalPopupMenu.show(TerminalButton, 0, TerminalButton.getHeight()));
+
         // Create Status label
         StatusLabel = new JLabel("Status: READY");
         StatusLabel.setFont(new Font("JetBrains Mono", Font.PLAIN, 20));
@@ -876,11 +943,11 @@ public class Register extends JFrame {
         statusPanel.add(StatusLabel, BorderLayout.CENTER);
 
         // Create NFCReader name label
-        ReaderLabel = new JLabel("Reader: N/A");
-        ReaderLabel.setFont(new Font("JetBrains Mono", Font.PLAIN, 20));
-        ReaderLabel.setPreferredSize(new Dimension(200, 30));
-        ReaderLabel.setForeground(Color.BLACK);
-        statusPanel.add(ReaderLabel, BorderLayout.CENTER);
+        TerminalLabel = new JLabel("Terminal: " + NFCHandler.GetActiveTerminalName());
+        TerminalLabel.setFont(new Font("JetBrains Mono", Font.PLAIN, 20));
+        TerminalLabel.setPreferredSize(new Dimension(200, 30));
+        TerminalLabel.setForeground(Color.BLACK);
+        statusPanel.add(TerminalLabel, BorderLayout.CENTER);
 
         // Create Start Time Label
         StartTimeLabel = new JLabel("Start Time: HH:MM");

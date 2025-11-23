@@ -7,8 +7,10 @@ import java.util
 object NFCHandler {
   private val standardCommand: Array[Int] = Array(0xFF, 0xCA, 0x00, 0x00, 0x00)
   private val factory: TerminalFactory = TerminalFactory.getDefault
-  private val terminals: util.List[CardTerminal] = factory.terminals.list
-  private val terminal = terminals.getFirst
+
+  private var terminals: util.List[CardTerminal] = new util.ArrayList[CardTerminal]()
+  private var terminal: Option[CardTerminal] = None
+  RefreshTerminals()
 
   /**
    * One full pass of the PC/SC handshake to get a UID from a presented smart card.
@@ -17,7 +19,10 @@ object NFCHandler {
    * @return The UID of the presented card as a String of Hex values
    */
   def GetUIDFromCard(timeout: Long): String = {
-    terminal.waitForCardPresent(timeout)
+    if (terminal.isEmpty) new String
+    val t = terminal.get
+
+    t.waitForCardPresent(timeout)
 
     val card: Card = ConnectToCard
     if (card == null) new String
@@ -28,7 +33,7 @@ object NFCHandler {
     val UID: Array[Byte] = response.getData
 
     card.disconnect(false)
-    terminal.waitForCardAbsent(timeout)
+    t.waitForCardAbsent(timeout)
     ToHex(UID)
   }
 
@@ -38,8 +43,13 @@ object NFCHandler {
    * @return The card that has been connected
    */
   private def ConnectToCard: Card = {
-    try { terminal.connect("*") }
-    catch { case _: CardException => null }
+    terminal match {
+      case Some(t) =>
+        try t.connect("*")
+        catch { case _: CardException => null }
+
+      case None => null
+    }
   }
 
   /**
@@ -61,4 +71,23 @@ object NFCHandler {
 
   private def ToByteArray(ints: Array[Int]): Array[Byte] = ints.map(_.toByte)
   private def ToHex(bytes: Array[Byte]): String = String.format("%0" + (bytes.length * 2) + "X", new BigInteger(1, bytes))
+
+  def GetTerminals: util.List[CardTerminal] = terminals
+  def SetActiveTerminal(newTerminal: Int): Unit = terminal = Some(terminals.get(newTerminal))
+
+  def GetActiveTerminalName: String = {
+    terminal match {
+      case Some(t) => t.getName
+      case None => "N/A"
+    }
+  }
+
+  def RefreshTerminals(): Unit = {
+    try terminals = factory.terminals.list
+    catch { case _: CardException => terminals = new util.ArrayList[CardTerminal]() }
+
+    terminal =
+      if (!terminals.isEmpty) Some(terminals.get(0))
+      else None
+  }
 }

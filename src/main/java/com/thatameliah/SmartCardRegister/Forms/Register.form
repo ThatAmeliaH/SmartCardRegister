@@ -27,7 +27,7 @@
         </constraints>
         <properties/>
       </component>
-      <component id="ac800" class="javax.swing.JLabel" binding="ReaderLabel" custom-create="true">
+      <component id="ac800" class="javax.swing.JLabel" binding="TerminalLabel" custom-create="true">
         <constraints>
           <grid row="6" column="5" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -35,7 +35,7 @@
           <enabled value="true"/>
           <font size="20" style="0"/>
           <horizontalTextPosition value="0"/>
-          <text value="Reader: N/A"/>
+          <text value="Terminal: N/A"/>
         </properties>
       </component>
       <vspacer id="e5ef0">
@@ -80,11 +80,6 @@
           <text value="View"/>
         </properties>
       </component>
-      <hspacer id="2039a">
-        <constraints>
-          <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-      </hspacer>
       <component id="15bc" class="javax.swing.JComboBox" binding="SetPresenceBox">
         <constraints>
           <grid row="7" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
@@ -96,13 +91,22 @@
       </component>
       <component id="9fb76" class="javax.swing.JLabel" binding="StartTimeLabel" custom-create="true">
         <constraints>
-          <grid row="5" column="5" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="6" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="5" column="5" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <enabled value="true"/>
           <font size="20" style="0"/>
           <horizontalTextPosition value="0"/>
           <text value="Start Time: Not Set"/>
+        </properties>
+      </component>
+      <component id="42792" class="javax.swing.JButton" binding="TerminalButton" custom-create="true">
+        <constraints>
+          <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font/>
+          <text value="Terminal"/>
         </properties>
       </component>
     </children>
