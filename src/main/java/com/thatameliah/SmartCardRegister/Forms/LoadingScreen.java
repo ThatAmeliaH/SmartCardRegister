@@ -10,13 +10,19 @@ public class LoadingScreen extends JFrame {
         final int V_HEIGHT = 200;
         final int V_WIDTH = 400;
 
-        setSize(V_WIDTH, V_HEIGHT);
-        setUndecorated(true);
-        setAlwaysOnTop(true);
-        setLocationRelativeTo(null);
+        this.setSize(V_WIDTH, V_HEIGHT);
+        this.setUndecorated(true);
+        this.setAlwaysOnTop(true);
+        this.setLocationRelativeTo(null);
 
-        setContentPane(ContentPane);
+        this.setContentPane(ContentPane);
 
-        setVisible(true);
+        this.setVisible(true);
+    }
+
+    private void createUIComponents() {
+        if (ContentPane == null) {
+            ContentPane = new JPanel();
+        }
     }
 }
