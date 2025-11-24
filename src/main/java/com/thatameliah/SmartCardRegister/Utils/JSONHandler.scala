@@ -6,7 +6,6 @@ import scala.collection.immutable.HashMap
 
 object JSONHandler {
   /** Create a new JSON Object representing one student
-   *
    * @param name The student's name
    * @param id The ID of the student
    * @return JSONObject with String "name" and String "id" fields
@@ -20,7 +19,6 @@ object JSONHandler {
 
   /**
    * Converts an array of JSONObjects into a JSONArray.
-   *
    * @param objects An array of JSONObjects
    * @return JSONArray containing the provided objects
    */
@@ -33,7 +31,6 @@ object JSONHandler {
 
   /**
    * Converts a JSONArray into a formatted JSON String.
-   *
    * @param array The JSONArray to convert
    * @param indentFactor The number of spaces to indent for pretty-printing
    * @return Formatted JSON string
@@ -48,7 +45,6 @@ object JSONHandler {
 
   /**
    * Parses a JSON String into a JSONArray.
-   *
    * @param jsonString The JSON string to parse
    * @return JSONArray parsed from the string
    */

@@ -6,7 +6,6 @@ import java.nio.file.{Files, Path}
 object FileHandler {
   /**
    * Writes a string to a file
-   *
    * @param content The String to be written
    * @param file The file to write to
    */
@@ -22,7 +21,6 @@ object FileHandler {
 
   /**
    * Reads the contents of a file
-   *
    * @param file The file to read from
    * @return The string contents of the file
    */

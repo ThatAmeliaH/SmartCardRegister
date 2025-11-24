@@ -14,7 +14,6 @@ object NFCHandler {
 
   /**
    * One full pass of the PC/SC handshake to get a UID from a presented smart card.
-   *
    * @param timeout The amount of time to wait for card present and card absent. 0 waits indefinitely.
    * @return The UID of the presented card as a String of Hex values
    */
@@ -39,22 +38,18 @@ object NFCHandler {
 
   /**
    * Connect to a smart card using a wildcard protocol.
-   *
    * @return The card that has been connected
    */
   private def ConnectToCard: Card = {
-    terminal match {
-      case Some(t) =>
-        try t.connect("*")
-        catch { case _: CardException => null }
-
+    try terminal match {
+      case Some(t) => t.connect("*")
       case None => null
     }
+    catch { case _: CardException => null }
   }
 
   /**
    * Transmits the standard command to the presented card
-   *
    * @param card The card to transmit to
    * @return The response from the card
    */
@@ -62,7 +57,7 @@ object NFCHandler {
     val channel: CardChannel = card.getBasicChannel
     val command: CommandAPDU = new CommandAPDU(ToByteArray(standardCommand))
 
-    try { channel.transmit(command) }
+    try channel.transmit(command)
     catch {
       case _: CardException => null
       case err: Exception => card.disconnect(false); throw err
@@ -72,9 +67,13 @@ object NFCHandler {
   private def ToByteArray(ints: Array[Int]): Array[Byte] = ints.map(_.toByte)
   private def ToHex(bytes: Array[Byte]): String = String.format("%0" + (bytes.length * 2) + "X", new BigInteger(1, bytes))
 
-  def GetTerminals: util.List[CardTerminal] = terminals
+  def GetConnectedTerminals: util.List[CardTerminal] = terminals
   def SetActiveTerminal(newTerminal: Int): Unit = terminal = Some(terminals.get(newTerminal))
 
+  /**
+   * Gets the name of the currently active terminal
+   * @return The name of the terminal connected, or "N/A" if no terminal is selected.
+   */
   def GetActiveTerminalName: String = {
     terminal match {
       case Some(t) => t.getName
@@ -82,9 +81,12 @@ object NFCHandler {
     }
   }
 
+  /**
+   * Refreshes the list of connected terminals.
+   */
   def RefreshTerminals(): Unit = {
     try terminals = factory.terminals.list
-    catch { case _: CardException => terminals = new util.ArrayList[CardTerminal]() }
+    catch { case _: CardException => terminals = new util.ArrayList[CardTerminal] }
 
     terminal =
       if (!terminals.isEmpty) Some(terminals.get(0))

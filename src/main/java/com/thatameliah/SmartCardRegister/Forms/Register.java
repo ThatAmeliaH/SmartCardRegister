@@ -101,18 +101,18 @@ public class Register extends JFrame {
         final int V_WIDTH = (int) WIDTH / 2;
 
         // JFrame configuration
-        setTitle("Register");
-        setSize(V_WIDTH, V_HEIGHT);
-        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        setLocationRelativeTo(null);
-        addWindowListener(new WindowAdapter() {
+        this.setTitle("Register");
+        this.setSize(V_WIDTH, V_HEIGHT);
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        this.setLocationRelativeTo(null);
+        this.addWindowListener(new WindowAdapter() {
             @Override public void windowClosing(WindowEvent e) {
                 Quit();
             }
         });
 
         // Content Pane configuration
-        setContentPane(ContentPane);
+        this.setContentPane(ContentPane);
         ContentPane.setFocusable(true);
         ContentPane.requestFocus();
 
@@ -190,7 +190,6 @@ public class Register extends JFrame {
 
     /**
      * Binds a shortcut's KeyCode and Modifiers to its Runnable function
-     *
      * @param shortcut The shortcut to bind
      */
     private void BindKey(@NotNull Shortcut shortcut) {
@@ -223,7 +222,6 @@ public class Register extends JFrame {
 
     /**
      * Link a list of menu items to an array of runnable functions.
-     *
      * @param items The list of items to bind the functions to
      * @param actions The array of runnable functions to bind
      */
@@ -523,6 +521,9 @@ public class Register extends JFrame {
         StartTimeLabel.setText("Start Time: " + DATE_FORMAT.format(startTime));
     }
 
+    /**
+     * Updates SelectPresenceBox to match the presence of the selected student.
+     */
     private void UpdateFieldsFromSelection() {
         int selectedIndex = StudentList.getSelectedIndex();
         if (selectedIndex == -1) { return; }
@@ -534,6 +535,9 @@ public class Register extends JFrame {
         SetPresenceBox.setSelectedItem(state);
     }
 
+    /**
+     * Updates the presence state of the selected student to the state in SetPresenceBox
+     */
     private void UpdatePresence() {
         int selectedIndex = StudentList.getSelectedIndex();
         if (selectedIndex == -1) { return; }
@@ -549,6 +553,9 @@ public class Register extends JFrame {
         StudentList.repaint();
     }
 
+    /**
+     * Toggles the selected student between absent and late/present, depending on StartTime.
+     */
     private void TogglePresent() {
         int selectedIndex = StudentList.getSelectedIndex();
         if (selectedIndex == -1) { return; }
@@ -560,11 +567,8 @@ public class Register extends JFrame {
         Presence newState;
 
         Date now = new Date();
-        if (startTime != null && now.before(startTime)) {
-            newState = (currentState == Presence.PRESENT) ? Presence.ABSENT : Presence.PRESENT;
-        } else {
-            newState = (currentState == Presence.LATE) ? Presence.ABSENT : Presence.LATE;
-        }
+        if (startTime != null && now.before(startTime)) { newState = (currentState == Presence.PRESENT) ? Presence.ABSENT : Presence.PRESENT; }
+        else { newState = (currentState == Presence.LATE) ? Presence.ABSENT : Presence.LATE; }
 
         PRESENCE_STATES.put(id, newState);
         SetPresenceBox.setSelectedItem(newState);
@@ -579,7 +583,6 @@ public class Register extends JFrame {
 
     /**
      * Saves the currently open register to a file
-     *
      * @return Whether the save attempt was successful
      */
     private boolean SaveRegister() {
@@ -735,7 +738,7 @@ public class Register extends JFrame {
     }
 
     private void SetActiveTerminal() {
-        final List<CardTerminal> TERMINALS = NFCHandler.GetTerminals();
+        final List<CardTerminal> TERMINALS = NFCHandler.GetConnectedTerminals();
         if (TERMINALS.isEmpty()) {
             JOptionPane.showMessageDialog(
                     this,

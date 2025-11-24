@@ -9,7 +9,6 @@ object Base64Handler {
 
   /**
    * Encodes a string into Base 64
-   *
    * @param input The String to be encoded
    * @return The input String encoded in Base64
    */
@@ -20,7 +19,6 @@ object Base64Handler {
 
   /**
    * Decodes a string from Base 64 into plaintext
-   *
    * @param input The String to be decoded
    * @return The input String decoded into plaintext
    */
