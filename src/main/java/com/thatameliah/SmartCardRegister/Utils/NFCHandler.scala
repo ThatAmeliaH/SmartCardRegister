@@ -18,17 +18,17 @@ object NFCHandler {
    * @return The UID of the presented card as a String of Hex values
    */
   def GetUIDFromCard(timeout: Long): String = {
-    if (terminal.isEmpty) new String
+    if (terminal.isEmpty) return new String
     val t = terminal.get
 
     t.waitForCardPresent(timeout)
 
     val card: Card = ConnectToCard
-    if (card == null) new String
+    if (card == null) return new String
 
     val response: ResponseAPDU = TransmitStandardCommand(card)
-    if (response == null) new String
-    if (response.getSW1 == 0x63 && response.getSW2 == 0x00) new String
+    if (response == null) return new String
+    if (response.getSW1 == 0x63 && response.getSW2 == 0x00) return new String
     val UID: Array[Byte] = response.getData
 
     card.disconnect(false)

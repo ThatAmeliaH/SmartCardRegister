@@ -21,6 +21,7 @@
 - Set selected student to _ABSENT_: **Alt + 3**
 - Toggle presence for selected student (time dependant): **Ctrl + Enter**
 
-**Card Terminal**
-- Select active terminal: Alt + T
-- Refresh connected terminals list: Alt + R
+**Terminal Management**
+- Select active terminal: **Alt + T**
+- Refresh connected terminals list: **Alt + R**
+- Open Terminal Tester Utility: **Ctrl + Alt + T**

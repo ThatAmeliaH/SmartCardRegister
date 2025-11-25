@@ -171,6 +171,16 @@
 - Removed "Snippets.ipynb"
 
 ## 21/11/25
+**Additions**
 - Added "NFCHandler.scala"
 - Added "NFCTesting.java"
   - NFCTesting provides a second entry point to the program, for testing NFC reader integration and functionality
+
+## 25/11/25
+**Additions**
+- Added Terminal Tester Utility for testing NFC Readers
+  - Uses keybind Ctrl + Alt + T
+
+**Changes**
+- Changed status label and drop down button setup to use one common function
+  - This removes a lot of repetition and makes formatting these easier

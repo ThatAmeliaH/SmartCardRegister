@@ -47,7 +47,7 @@ public class Register extends JFrame {
     private final Map<Integer, String> STUDENTS = new HashMap<>();
     private final Map<Integer, Presence> PRESENCE_STATES = new HashMap<>();
 
-    private record Shortcut(String name, int keyCode, int modifiers, Runnable handler) {}
+    public record Shortcut(String name, int keyCode, int modifiers, Runnable handler) {}
 
     private int nextID = 1;
 
@@ -170,7 +170,8 @@ public class Register extends JFrame {
 
                 // Terminal management actions
                 new Shortcut("SetActiveTerminal", KeyEvent.VK_T, KeyEvent.SHIFT_DOWN_MASK, this::SetActiveTerminal),
-                new Shortcut("RefreshConnectedTerminals", KeyEvent.VK_R, KeyEvent.SHIFT_DOWN_MASK, NFCHandler::RefreshTerminals)
+                new Shortcut("RefreshConnectedTerminals", KeyEvent.VK_R, KeyEvent.SHIFT_DOWN_MASK, NFCHandler::RefreshTerminals),
+                new Shortcut("OpenTerminalTester", KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK, this::OpenTerminalTester)
         };
 
         // Bind functions to key presses
@@ -746,6 +747,7 @@ public class Register extends JFrame {
                     "No Terminals Detected",
                     JOptionPane.WARNING_MESSAGE
             );
+            TerminalLabel.setText("Terminal: N/A");
             return;
         }
 
@@ -771,6 +773,11 @@ public class Register extends JFrame {
                 TerminalLabel.setText("Terminal: " + NFCHandler.GetActiveTerminalName());
             }
         }
+    }
+
+    private void OpenTerminalTester() {
+        TerminalTester terminalTester = new TerminalTester();
+        terminalTester.setVisible(true);
     }
 
     public void Quit() {
@@ -851,7 +858,8 @@ public class Register extends JFrame {
         // "Terminal" drop-down sub buttons:
         final List<JMenuItem> TERMINAL_MENU_ITEMS = List.of(
                 new JMenuItem("Select active terminal (Shift + T)"),
-                new JMenuItem("Refresh connected terminals (Shift + R)")
+                new JMenuItem("Refresh connected terminals (Shift + R)"),
+                new JMenuItem("Open Terminal Tester Utility (Ctrl + Alt + T)")
         );
 
         // "File" button popup menu
@@ -894,73 +902,64 @@ public class Register extends JFrame {
         JPopupMenu terminalPopupMenu = new JPopupMenu();
         AddMenuActions(TERMINAL_MENU_ITEMS,
                 this::SetActiveTerminal,
-                NFCHandler::RefreshTerminals
+                NFCHandler::RefreshTerminals,
+                this::OpenTerminalTester
         );
         TERMINAL_MENU_ITEMS.forEach(terminalPopupMenu::add);
 
-        // "File" drop down button
+        // Drop Down Buttons
         FileButton = new JButton("File");
-        FileButton.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
-        FileButton.setFocusPainted(false);
-        FileButton.setBackground(new Color(240, 240, 240));
-        FileButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        FileButton.addActionListener(event -> filePopupMenu.show(FileButton, 0, FileButton.getHeight()));
+        ConfigureMenuButton(FileButton, filePopupMenu);
 
-        // "Edit" drop down button
         EditButton = new JButton("Edit");
-        EditButton.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
-        EditButton.setFocusPainted(false);
-        EditButton.setBackground(new Color(240, 240, 240));
-        EditButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        EditButton.addActionListener(event -> editPopupMenu.show(EditButton, 0, EditButton.getHeight()));
+        ConfigureMenuButton(EditButton, editPopupMenu);
 
-        // "View" drop down button
         ViewButton = new JButton("View");
-        ViewButton.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
-        ViewButton.setFocusPainted(false);
-        ViewButton.setBackground(new Color(240, 240, 240));
-        ViewButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        ViewButton.addActionListener(event -> viewPopupMenu.show(ViewButton, 0, ViewButton.getHeight()));
+        ConfigureMenuButton(ViewButton, viewPopupMenu);
 
-        // "Student" drop down button
         StudentButton = new JButton("Student");
-        StudentButton.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
-        StudentButton.setFocusPainted(false);
-        StudentButton.setBackground(new Color(240, 240, 240));
-        StudentButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        StudentButton.addActionListener(event -> studentPopupMenu.show(StudentButton, 0, StudentButton.getHeight()));
+        ConfigureMenuButton(StudentButton, studentPopupMenu);
 
-        // "Terminal" drop down button
         TerminalButton = new JButton("Terminal");
-        TerminalButton.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
-        TerminalButton.setFocusPainted(false);
-        TerminalButton.setBackground(new Color(240, 240, 240));
-        TerminalButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        TerminalButton.addActionListener(event -> terminalPopupMenu.show(TerminalButton, 0, TerminalButton.getHeight()));
+        ConfigureMenuButton(TerminalButton, terminalPopupMenu);
 
-        // Create Status label
+        // Status Labels
         StatusLabel = new JLabel("Status: READY");
-        StatusLabel.setFont(new Font("JetBrains Mono", Font.PLAIN, 20));
-        StatusLabel.setPreferredSize(new Dimension(200, 30));
-        StatusLabel.setForeground(Color.BLACK);
-        statusPanel.add(StatusLabel, BorderLayout.CENTER);
+        ConfigureStatusLabel(StatusLabel, statusPanel);
 
-        // Create NFCReader name label
         TerminalLabel = new JLabel("Terminal: " + NFCHandler.GetActiveTerminalName());
-        TerminalLabel.setFont(new Font("JetBrains Mono", Font.PLAIN, 20));
-        TerminalLabel.setPreferredSize(new Dimension(200, 30));
-        TerminalLabel.setForeground(Color.BLACK);
-        statusPanel.add(TerminalLabel, BorderLayout.CENTER);
+        ConfigureStatusLabel(TerminalLabel, statusPanel);
 
-        // Create Start Time Label
         StartTimeLabel = new JLabel("Start Time: HH:MM");
-        StartTimeLabel.setFont(new Font("JetBrains Mono", Font.PLAIN, 20));
-        StartTimeLabel.setPreferredSize(new Dimension(200, 30));
-        StartTimeLabel.setForeground(Color.BLACK);
-        statusPanel.add(StartTimeLabel, BorderLayout.CENTER);
+        ConfigureStatusLabel(StartTimeLabel, statusPanel);
 
         // Add panels to main ContentPane
         ContentPane.setLayout(new BorderLayout());
         ContentPane.add(statusPanel, BorderLayout.SOUTH);
+    }
+
+    /**
+     * Configure a top bar menu button with an associated drop-down.
+     * @param button    The JButton to configure
+     * @param popupMenu The JPopupMenu menu to connect the button to
+     */
+    private void ConfigureMenuButton(@NotNull JButton button, @NotNull JPopupMenu popupMenu) {
+        button.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
+        button.setFocusPainted(false);
+        button.setBackground(new Color(240, 240, 240));
+        button.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        button.addActionListener(event -> popupMenu.show(button, 0, button.getHeight()));
+    }
+
+    /**
+     * Configure and format a JLabel using the standard Status Label format, and link it to a JPanel
+     * @param label The label to format
+     * @param panel The JPanel to link the formatted label to
+     */
+    private void ConfigureStatusLabel(JLabel label, JPanel panel) {
+        label.setFont(new Font("JetBrains Mono", Font.PLAIN, 20));
+        label.setPreferredSize(new Dimension(200, 30));
+        label.setForeground(Color.BLACK);
+        panel.add(label, BorderLayout.CENTER);
     }
 }
