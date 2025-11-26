@@ -1,4 +1,4 @@
-package com.thatameliah.SmartCardRegister.Utils
+﻿package com.thatameliah.SmartCardRegister.Utils
 
 import javax.smartcardio._
 import java.math.BigInteger
