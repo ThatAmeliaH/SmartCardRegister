@@ -1,5 +1,6 @@
 package com.thatameliah.SmartCardRegister.Testing;
 
+import com.thatameliah.SmartCardRegister.Forms.Register;
 import com.thatameliah.SmartCardRegister.Utils.NFCHandler;
 
 public class NFCTesting {
@@ -10,7 +11,7 @@ public class NFCTesting {
         while (true) {
             System.out.println("----------------------\nWaiting for card...");
 
-            String UID = NFCHandler.GetUIDFromCard(0);
+            String UID = NFCHandler.GetUIDFromCard(0, Register.Status.READY);
             System.out.println("UID: " + UID);
 
             System.out.println("----------------------\n");

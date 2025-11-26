@@ -36,9 +36,9 @@ public class Register extends JFrame {
     private JButton FileButton;
     private JButton EditButton;
     private JButton StudentButton;
+    private JButton TerminalButton;
     private JButton ViewButton;
     private JLabel StartTimeLabel;
-    private JButton TerminalButton;
 
     private final int MAX_NAME_LENGTH = 25;
 
@@ -47,8 +47,10 @@ public class Register extends JFrame {
     private final Map<Integer, String> STUDENTS = new HashMap<>();
     private final Map<Integer, Presence> PRESENCE_STATES = new HashMap<>();
 
-    public record Shortcut(String name, int keyCode, int modifiers, Runnable handler) {}
+    private record Shortcut(String name, int keyCode, int modifiers, Runnable handler) {}
 
+    private volatile boolean Listening = false;
+    private Thread CardListenerThread;
     private int nextID = 1;
 
     private boolean isFullscreen = false;
@@ -88,6 +90,8 @@ public class Register extends JFrame {
         put(Presence.ABSENT, new Color(255, 150, 200));
         put(Presence.LATE, new Color(255, 200, 50));
     }};
+    
+    public Status status;
 
     // Main form constructor
     public Register() {
@@ -177,14 +181,19 @@ public class Register extends JFrame {
         // Bind functions to key presses
         for (var shortcut : SHORTCUTS) { BindKey(shortcut); }
 
+        // Setup terminal and begin listening for cards.
         TerminalLabel.setText("Terminal: " + NFCHandler.GetActiveTerminalName());
-
+        SetupStopOnClose();
+        StartCardListener();
+        
         // Setup complete - set status to READY
         SetStatus(Status.READY);
     }
 
     // Helper Functions
     public void SetStatus(Status status) {
+        this.status = status;
+        
         String message = STATUS_MAP.getOrDefault(status, "Unknown");
         StatusLabel.setText("Status: " + message);
     }
@@ -582,6 +591,29 @@ public class Register extends JFrame {
         SetPresenceBox.setSelectedItem(newPresence);
     }
 
+    private void StartCardListener() {
+        Listening = true;
+        
+        CardListenerThread = new Thread(this::ListenForCards);
+        CardListenerThread.setDaemon(true);
+        CardListenerThread.start();
+    }
+    
+    private void StopCardListener() {
+        Listening = false;
+        
+        if (CardListenerThread != null) {
+            CardListenerThread.interrupt();
+        }
+    }
+    
+    private void ListenForCards() {
+        while (Listening && this.isVisible()) {
+            String UID = NFCHandler.GetUIDFromCard(0, status);
+            // TODO: Make this toggle the presence of a student.
+        }
+    }
+    
     /**
      * Saves the currently open register to a file
      * @return Whether the save attempt was successful
@@ -722,17 +754,17 @@ public class Register extends JFrame {
         if (isFullscreen) {
             // Exit fullscreen
             device.setFullScreenWindow(null);
-            dispose();
-            setUndecorated(false);
-            setBounds(windowedBounds);
-            setVisible(true);
+            this.dispose();
+            this.setUndecorated(false);
+            this.setBounds(windowedBounds);
+            this.setVisible(true);
             isFullscreen = false;
         } else {
             // Enter fullscreen
             windowedBounds = getBounds();
-            dispose();
-            setUndecorated(true);
-            setVisible(true);
+            this.dispose();
+            this.setUndecorated(true);
+            this.setVisible(true);
             device.setFullScreenWindow(this);
             isFullscreen = true;
         }
@@ -775,16 +807,27 @@ public class Register extends JFrame {
         }
     }
 
-    private void OpenTerminalTester() {
-        TerminalTester terminalTester = new TerminalTester();
+    public void OpenTerminalTester() {
+        TerminalTester terminalTester = new TerminalTester(this);
         terminalTester.setVisible(true);
+    }
+    
+    private void SetupStopOnClose() {
+        this.addComponentListener(new ComponentAdapter() {
+            @Override public void componentHidden(ComponentEvent e) { StopCardListener(); }
+        });
+
+        this.addWindowListener(new WindowAdapter() {
+            @Override public void windowClosing(WindowEvent e) { StopCardListener(); }
+            @Override public void windowClosed(WindowEvent e) { StopCardListener(); }
+        });
     }
 
     public void Quit() {
         SetStatus(Status.AWAITING_INPUT);
         int saveResult = JOptionPane.showConfirmDialog(
                 this,
-                "Do you wish to save the current register?",
+                "Do you want to save the current register?",
                 "Confirm",
                 JOptionPane.YES_NO_CANCEL_OPTION,
                 JOptionPane.QUESTION_MESSAGE
