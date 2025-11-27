@@ -39,6 +39,8 @@ public class Register extends JFrame {
     private JButton TerminalButton;
     private JButton ViewButton;
     private JLabel StartTimeLabel;
+    private JRadioButton RegisterModeRButton;
+    private JRadioButton EditModeRButton;
 
     private final int MAX_NAME_LENGTH = 25;
 
@@ -46,8 +48,11 @@ public class Register extends JFrame {
 
     private final Map<Integer, String> STUDENTS = new HashMap<>();
     private final Map<Integer, Presence> PRESENCE_STATES = new HashMap<>();
+    private final Map<Integer, String> UNIQUE_IDS = new HashMap<>();
 
     private record Shortcut(String name, int keyCode, int modifiers, Runnable handler) {}
+    
+    private final ButtonGroup TerminalModeGroup = new ButtonGroup();
 
     private volatile boolean Listening = false;
     private Thread CardListenerThread;
@@ -75,6 +80,12 @@ public class Register extends JFrame {
         LATE,
     }
 
+    public enum TerminalMode {
+        REGISTER,
+        EDIT,
+    }
+    public TerminalMode mode = TerminalMode.REGISTER;
+    
     private final Map<Status, String> STATUS_MAP = new HashMap<>() {{
         put(Status.READY, "Ready");
         put(Status.LOADING, "Loading");
@@ -170,7 +181,8 @@ public class Register extends JFrame {
                 new Shortcut("SetPresent", KeyEvent.VK_1, KeyEvent.ALT_DOWN_MASK, () -> SetPresence(Presence.PRESENT)),
                 new Shortcut("SetLate", KeyEvent.VK_2, KeyEvent.ALT_DOWN_MASK, () -> SetPresence(Presence.LATE)),
                 new Shortcut("SetAbsent", KeyEvent.VK_3, KeyEvent.ALT_DOWN_MASK, () -> SetPresence(Presence.ABSENT)),
-                new Shortcut("TogglePresent", KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK, this::TogglePresent),
+                new Shortcut("TogglePresent", KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK, this::ToggleSelected),
+                new Shortcut("ShowStudentUIDs", KeyEvent.VK_U, KeyEvent.CTRL_DOWN_MASK, this::ShowStudentUIDs),
 
                 // Terminal management actions
                 new Shortcut("SetActiveTerminal", KeyEvent.VK_T, KeyEvent.SHIFT_DOWN_MASK, this::SetActiveTerminal),
@@ -180,6 +192,9 @@ public class Register extends JFrame {
 
         // Bind functions to key presses
         for (var shortcut : SHORTCUTS) { BindKey(shortcut); }
+        
+        RegisterModeRButton.addActionListener(e -> SetTerminalMode(TerminalMode.REGISTER));
+        EditModeRButton.addActionListener(e -> SetTerminalMode(TerminalMode.EDIT));
 
         // Setup terminal and begin listening for cards.
         TerminalLabel.setText("Terminal: " + NFCHandler.GetActiveTerminalName());
@@ -340,8 +355,9 @@ public class Register extends JFrame {
         int id = nextID++;
         STUDENTS.put(id, fullName);
         PRESENCE_STATES.put(id, Presence.ABSENT);
+        UNIQUE_IDS.put(id, "N/A");
         STUDENT_LIST_MODEL.addElement(FormatListString(id, fullName));
-
+        
         SetStatus(Status.READY);
     }
 
@@ -457,7 +473,6 @@ public class Register extends JFrame {
         SetStatus(Status.AWAITING_INPUT);
 
         int selectedIndex = StudentList.getSelectedIndex();
-
         if (selectedIndex == -1) {
             JOptionPane.showMessageDialog(
                     this,
@@ -491,8 +506,27 @@ public class Register extends JFrame {
         SetStatus(Status.WORKING);
         STUDENTS.remove(id);
         PRESENCE_STATES.remove(id);
+        UNIQUE_IDS.remove(id);
         STUDENT_LIST_MODEL.remove(selectedIndex);
         SetStatus(Status.READY);
+    }
+    
+    private void ShowStudentUIDs() {
+        StringBuilder message = new StringBuilder();
+        if (STUDENTS.isEmpty()) { message.append("Register is empty."); }
+        else {
+            for (int id : STUDENTS.keySet()) {
+                message.append("[").append(id).append("]: ").append(STUDENTS.get(id)).append(" | UID: ").append(UNIQUE_IDS.get(id));
+                message.append("\n");
+            }
+        }
+        
+        JOptionPane.showMessageDialog(
+                this,
+                message.toString(),
+                "Students",
+                JOptionPane.INFORMATION_MESSAGE
+        );
     }
 
     private void UpdateStartTime() {
@@ -526,8 +560,7 @@ public class Register extends JFrame {
         today.set(Calendar.MILLISECOND, 0);
 
         startTime = today.getTime();
-
-
+        
         StartTimeLabel.setText("Start Time: " + DATE_FORMAT.format(startTime));
     }
 
@@ -566,7 +599,7 @@ public class Register extends JFrame {
     /**
      * Toggles the selected student between absent and late/present, depending on StartTime.
      */
-    private void TogglePresent() {
+    private void ToggleSelected() {
         int selectedIndex = StudentList.getSelectedIndex();
         if (selectedIndex == -1) { return; }
 
@@ -608,9 +641,46 @@ public class Register extends JFrame {
     }
     
     private void ListenForCards() {
-        while (Listening && this.isVisible()) {
+        while (Listening) {
             String UID = NFCHandler.GetUIDFromCard(0, status);
-            // TODO: Make this toggle the presence of a student.
+            if (UID.isEmpty()) return;
+
+            int selectedIndex = StudentList.getSelectedIndex();
+            if (selectedIndex == -1) { return; }
+            
+            if (mode == TerminalMode.REGISTER) { // TODO: TEST THIS!!!!
+                for (Map.Entry<Integer, String> entry : UNIQUE_IDS.entrySet()) {
+                    if (entry.getValue().equals(UID)) {
+                        int id = entry.getKey();
+                        if (PRESENCE_STATES.get(id) != Presence.ABSENT) return;
+                        
+                        Presence newState;
+                        Date now = new Date();
+                        if (startTime != null && now.before(startTime)) { newState =  Presence.PRESENT; }
+                        else { newState =  Presence.LATE; }
+
+                        PRESENCE_STATES.put(id, newState);
+                        SetPresenceBox.setSelectedItem(newState);
+
+                        StudentList.revalidate();
+                        StudentList.repaint();
+                    }
+                }
+            } else {
+                String entry = STUDENT_LIST_MODEL.getElementAt(selectedIndex);
+                int studentId = ParseIdFromListString(entry);
+                String oldUID = UNIQUE_IDS.get(studentId);
+                
+                // TODO: Check for duplicates.
+                
+                UNIQUE_IDS.put(studentId, UID);
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Updated UID for " + STUDENTS.get(studentId) + " to " + UID + (oldUID.equals("N/A") ? "" : ("From " + oldUID)),
+                        "UID Updated",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+            }
         }
     }
     
@@ -806,6 +876,8 @@ public class Register extends JFrame {
             }
         }
     }
+    
+    private void SetTerminalMode(TerminalMode newMode) { this.mode = newMode; }
 
     public void OpenTerminalTester() {
         TerminalTester terminalTester = new TerminalTester(this);
@@ -895,7 +967,8 @@ public class Register extends JFrame {
                 new JMenuItem("New student (Ctrl + N)"),
                 new JMenuItem("Edit selected student (Ctrl + E)"),
                 new JMenuItem("Delete selected student (Delete)"),
-                new JMenuItem("Toggle student present (Ctrl + Enter)")
+                new JMenuItem("Toggle student present (Ctrl + Enter)"),
+                new JMenuItem("Show Student UIDs (Ctrl + U)")
         );
 
         // "Terminal" drop-down sub buttons:
@@ -937,7 +1010,8 @@ public class Register extends JFrame {
                 this::NewStudent,
                 this::UpdateStudent,
                 () -> DeleteStudent(false),
-                this::TogglePresent
+                this::ToggleSelected,
+                this::ShowStudentUIDs
         );
         STUDENT_MENU_ITEMS.forEach(studentPopupMenu::add);
 
