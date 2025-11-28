@@ -1,6 +1,6 @@
 package com.thatameliah.SmartCardRegister.Utils
 
-import com.thatameliah.SmartCardRegister.Forms.Register.Status;
+import com.thatameliah.SmartCardRegister.Forms.Register
 
 import java.math.BigInteger
 import javax.smartcardio._
@@ -19,8 +19,8 @@ object NFCHandler {
    * @param timeout The amount of time to wait for card present and card absent. 0 waits indefinitely.
    * @return The UID of the presented card as a String of Hex values
    */
-  def GetUIDFromCard(timeout: Long, status: Status): String = {
-    if (status != Status.READY) return new String
+  def GetUIDFromCard(timeout: Long, status: Register.Status): String = {
+    if (!status.equals(Register.Status.READY)) return new String
     if (terminal.isEmpty) return new String
     val t = terminal.get
 

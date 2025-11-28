@@ -28,7 +28,7 @@ public class Main {
         // Runs the specified Runnable (or in this case lambda) asynchronously after all other java.awt events have finished
         // Used here to allow the Register.java class and linked form to fully initialise before displaying it to the user
         SwingUtilities.invokeLater(() -> {
-            loadingScreen.setVisible(false);
+            loadingScreen.dispose();
             registerUI.setVisible(true);
         });
     }

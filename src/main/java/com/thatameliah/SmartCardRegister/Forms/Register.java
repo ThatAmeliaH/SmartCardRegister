@@ -51,8 +51,6 @@ public class Register extends JFrame {
     private final Map<Integer, String> UNIQUE_IDS = new HashMap<>();
 
     private record Shortcut(String name, int keyCode, int modifiers, Runnable handler) {}
-    
-    private final ButtonGroup TerminalModeGroup = new ButtonGroup();
 
     private volatile boolean Listening = false;
     private Thread CardListenerThread;
@@ -72,6 +70,7 @@ public class Register extends JFrame {
         AWAITING_FILE,
         SAVING_FILE,
         LOADING_FILE,
+        WAITING_FOR_CARD_ABSENT,
     }
 
     public enum Presence {
@@ -94,6 +93,7 @@ public class Register extends JFrame {
         put(Status.AWAITING_FILE, "Awaiting File");
         put(Status.SAVING_FILE, "Saving File");
         put(Status.LOADING_FILE, "Loading File");
+        put(Status.WAITING_FOR_CARD_ABSENT, "Remove Card");
     }};
 
     private final Map<Presence, Color> PRESENCE_MAP = new HashMap<>() {{
@@ -181,8 +181,9 @@ public class Register extends JFrame {
                 new Shortcut("SetPresent", KeyEvent.VK_1, KeyEvent.ALT_DOWN_MASK, () -> SetPresence(Presence.PRESENT)),
                 new Shortcut("SetLate", KeyEvent.VK_2, KeyEvent.ALT_DOWN_MASK, () -> SetPresence(Presence.LATE)),
                 new Shortcut("SetAbsent", KeyEvent.VK_3, KeyEvent.ALT_DOWN_MASK, () -> SetPresence(Presence.ABSENT)),
-                new Shortcut("TogglePresent", KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK, this::ToggleSelected),
+                new Shortcut("TogglePresent", KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK, this::ToggleSelectedPresence),
                 new Shortcut("ShowStudentUIDs", KeyEvent.VK_U, KeyEvent.CTRL_DOWN_MASK, this::ShowStudentUIDs),
+                new Shortcut("ResetUID", KeyEvent.VK_R, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK, this::ResetSelectedUID),
 
                 // Terminal management actions
                 new Shortcut("SetActiveTerminal", KeyEvent.VK_T, KeyEvent.SHIFT_DOWN_MASK, this::SetActiveTerminal),
@@ -199,7 +200,7 @@ public class Register extends JFrame {
         // Setup terminal and begin listening for cards.
         TerminalLabel.setText("Terminal: " + NFCHandler.GetActiveTerminalName());
         SetupStopOnClose();
-        StartCardListener();
+        StartCardListenerAsync();
         
         // Setup complete - set status to READY
         SetStatus(Status.READY);
@@ -549,6 +550,7 @@ public class Register extends JFrame {
             SetStatus(Status.READY);
             return;
         }
+        
         Date selectedTime = model.getDate();
         Calendar today = Calendar.getInstance();
         Calendar selectedCal = Calendar.getInstance();
@@ -569,7 +571,7 @@ public class Register extends JFrame {
      */
     private void UpdateFieldsFromSelection() {
         int selectedIndex = StudentList.getSelectedIndex();
-        if (selectedIndex == -1) { return; }
+        if (selectedIndex == -1) return;
 
         String entry = STUDENT_LIST_MODEL.getElementAt(selectedIndex);
         int id = ParseIdFromListString(entry);
@@ -583,13 +585,13 @@ public class Register extends JFrame {
      */
     private void UpdatePresence() {
         int selectedIndex = StudentList.getSelectedIndex();
-        if (selectedIndex == -1) { return; }
+        if (selectedIndex == -1) return;
 
         String entry = STUDENT_LIST_MODEL.getElementAt(selectedIndex);
         int id = ParseIdFromListString(entry);
 
         Presence state = (Presence) SetPresenceBox.getSelectedItem();
-        if (state == null) { return; }
+        if (state == null) return;
 
         PRESENCE_STATES.put(id, state);
         StudentList.revalidate();
@@ -599,19 +601,18 @@ public class Register extends JFrame {
     /**
      * Toggles the selected student between absent and late/present, depending on StartTime.
      */
-    private void ToggleSelected() {
+    private void ToggleSelectedPresence() {
         int selectedIndex = StudentList.getSelectedIndex();
-        if (selectedIndex == -1) { return; }
+        if (selectedIndex == -1) return;
 
         String entry = STUDENT_LIST_MODEL.getElementAt(selectedIndex);
         int id = ParseIdFromListString(entry);
 
         Presence currentState = PRESENCE_STATES.getOrDefault(id, Presence.ABSENT);
         Presence newState;
-
-        Date now = new Date();
-        if (startTime != null && now.before(startTime)) { newState = (currentState == Presence.PRESENT) ? Presence.ABSENT : Presence.PRESENT; }
-        else { newState = (currentState == Presence.LATE) ? Presence.ABSENT : Presence.LATE; }
+        
+        if (currentState == Presence.ABSENT) newState = GetPresenceFromStartTime();
+        else newState = Presence.ABSENT;
 
         PRESENCE_STATES.put(id, newState);
         SetPresenceBox.setSelectedItem(newState);
@@ -620,11 +621,9 @@ public class Register extends JFrame {
         StudentList.repaint();
     }
 
-    private void SetPresence(Presence newPresence) {
-        SetPresenceBox.setSelectedItem(newPresence);
-    }
+    private void SetPresence(Presence newPresence) { SetPresenceBox.setSelectedItem(newPresence); }
 
-    private void StartCardListener() {
+    private void StartCardListenerAsync() {
         Listening = true;
         
         CardListenerThread = new Thread(this::ListenForCards);
@@ -635,53 +634,106 @@ public class Register extends JFrame {
     private void StopCardListener() {
         Listening = false;
         
-        if (CardListenerThread != null) {
-            CardListenerThread.interrupt();
-        }
+        if (CardListenerThread != null) CardListenerThread.interrupt();
     }
     
     private void ListenForCards() {
         while (Listening) {
             String UID = NFCHandler.GetUIDFromCard(0, status);
-            if (UID.isEmpty()) return;
+            if (UID.isEmpty()) continue;
 
             int selectedIndex = StudentList.getSelectedIndex();
-            if (selectedIndex == -1) { return; }
+            if (selectedIndex == -1) continue;
             
-            if (mode == TerminalMode.REGISTER) { // TODO: TEST THIS!!!!
+            if (mode == TerminalMode.REGISTER) {
                 for (Map.Entry<Integer, String> entry : UNIQUE_IDS.entrySet()) {
-                    if (entry.getValue().equals(UID)) {
-                        int id = entry.getKey();
-                        if (PRESENCE_STATES.get(id) != Presence.ABSENT) return;
+                    if (!entry.getValue().equals(UID)) continue;
+                    
+                    int id = entry.getKey();
+                    if (PRESENCE_STATES.get(id) != Presence.ABSENT) break;
                         
-                        Presence newState;
-                        Date now = new Date();
-                        if (startTime != null && now.before(startTime)) { newState =  Presence.PRESENT; }
-                        else { newState =  Presence.LATE; }
+                    Presence newState = GetPresenceFromStartTime();
 
-                        PRESENCE_STATES.put(id, newState);
-                        SetPresenceBox.setSelectedItem(newState);
+                    PRESENCE_STATES.put(id, newState);
+                    SetPresenceBox.setSelectedItem(newState);
 
-                        StudentList.revalidate();
-                        StudentList.repaint();
-                    }
+                    StudentList.revalidate();
+                    StudentList.repaint();
+                    
+                    break;
                 }
             } else {
                 String entry = STUDENT_LIST_MODEL.getElementAt(selectedIndex);
                 int studentId = ParseIdFromListString(entry);
                 String oldUID = UNIQUE_IDS.get(studentId);
+
+                if (oldUID.equals(UID)) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Student [" + studentId + "]: " + STUDENTS.get(studentId) + " has already been assigned UID " + UID + ". UIDs have not been updated.",
+                            "Duplicate UID",
+                            JOptionPane.ERROR_MESSAGE
+                    ); continue;
+                }
                 
-                // TODO: Check for duplicates.
+                if (UNIQUE_IDS.containsValue(UID)) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "UID \"" + UID + "\" already in use by [" + studentId + "]: " + STUDENTS.get(studentId) + ". Reset or update their UID and retry.",
+                            "Duplicate UID",
+                            JOptionPane.ERROR_MESSAGE
+                    ); continue;
+                }
+                    
+                int result = JOptionPane.showConfirmDialog(
+                        this,
+                        "You are about to update the UID for " + "[" + studentId + "]: " + STUDENTS.get(studentId) + " from \"" + oldUID + "\" to \"" + UID + "\".\n Do you want to continue?",
+                        "Confirm UID Update",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE
+                );
+                if (result != JOptionPane.YES_OPTION) continue;
                 
+                boolean initialAssign = oldUID.equals("N/A");
                 UNIQUE_IDS.put(studentId, UID);
                 JOptionPane.showMessageDialog(
                         this,
-                        "Updated UID for " + STUDENTS.get(studentId) + " to " + UID + (oldUID.equals("N/A") ? "" : ("From " + oldUID)),
+                        (initialAssign ? "Set" : "Updated") + " UID for " + STUDENTS.get(studentId) + " to " + UID + (initialAssign ? "" : ("(From " + oldUID + ")")),
                         "UID Updated",
                         JOptionPane.INFORMATION_MESSAGE
                 );
             }
         }
+    }
+    
+    private void ResetSelectedUID() {
+        int selectedIndex = StudentList.getSelectedIndex();
+        if (selectedIndex == -1) return;
+        int studentId = ParseIdFromListString(STUDENT_LIST_MODEL.getElementAt(selectedIndex));
+        
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "You are about to reset the UID for " + STUDENTS.get(studentId) + ". Are you sure you wish to continue?",
+                "UID Reset",
+                JOptionPane.YES_NO_OPTION
+        );
+        if (confirm != JOptionPane.YES_OPTION) return;
+        
+        UNIQUE_IDS.put(studentId, "N/A");
+        
+        JOptionPane.showMessageDialog(
+                this,
+                "Reset UID for " + STUDENTS.get(studentId),
+                "UID Reset",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+    
+    private Presence GetPresenceFromStartTime() {
+        Date now = new Date();
+        
+        if (startTime == null || now.before(startTime)) return Presence.PRESENT;
+        return Presence.LATE;
     }
     
     /**
@@ -1010,7 +1062,7 @@ public class Register extends JFrame {
                 this::NewStudent,
                 this::UpdateStudent,
                 () -> DeleteStudent(false),
-                this::ToggleSelected,
+                this::ToggleSelectedPresence,
                 this::ShowStudentUIDs
         );
         STUDENT_MENU_ITEMS.forEach(studentPopupMenu::add);
