@@ -19,6 +19,8 @@ public class TerminalTester extends JFrame {
     public record Shortcut(String name, int keyCode, int modifiers, Runnable handler) {}
 
     public TerminalTester(Register ParentFrame) {
+        try { Thread.sleep(1); }
+        catch (InterruptedException ignored) {}
         this.ParentFrame = ParentFrame;
         
         final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();

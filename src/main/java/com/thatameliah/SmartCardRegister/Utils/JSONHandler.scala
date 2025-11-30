@@ -1,19 +1,22 @@
 package com.thatameliah.SmartCardRegister.Utils
 
+import scala.jdk.CollectionConverters._
 import org.json.{JSONArray, JSONObject}
-
-import scala.collection.immutable.HashMap
 
 object JSONHandler {
   /** Create a new JSON Object representing one student
    * @param name The student's name
-   * @param id The ID of the student
+   * @param studentId The ID of the student
    * @return JSONObject with String "name" and String "id" fields
    */
-  def CreateStudentJSON(name: String, id: String): JSONObject = {
-    if (name == null || id == null) { throw new NullPointerException }
+  def CreateStudentJSON(name: String, studentId: String, UID: String): JSONObject = {
+    if (name == null || studentId == null) { throw new NullPointerException }
 
-    val studentMap: HashMap[String, String] = HashMap("name" -> name, "id" -> id)
+    val studentMap = Map(
+      "name" -> name,
+      "id" -> studentId,
+      "UID" -> UID
+    ).asJava
     new JSONObject(studentMap)
   }
 

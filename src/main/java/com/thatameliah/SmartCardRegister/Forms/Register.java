@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.smartcardio.*;
@@ -51,6 +52,7 @@ public class Register extends JFrame {
     private final Map<Integer, String> UNIQUE_IDS = new HashMap<>();
 
     private record Shortcut(String name, int keyCode, int modifiers, Runnable handler) {}
+    private record MenuEntry(String label, Runnable action) {}
 
     private volatile boolean Listening = false;
     private Thread CardListenerThread;
@@ -171,7 +173,7 @@ public class Register extends JFrame {
                 new Shortcut("UpdateStudent", KeyEvent.VK_E, KeyEvent.CTRL_DOWN_MASK, this::UpdateStudent),
                 new Shortcut("DeleteSelected", KeyEvent.VK_DELETE, 0, () -> DeleteStudent(false)),
                 new Shortcut("SudoDeleteSelected", KeyEvent.VK_DELETE, KeyEvent.CTRL_DOWN_MASK, () -> DeleteStudent(true)),
-                new Shortcut("SetStartTime", KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK, this::UpdateStartTime),
+                new Shortcut("SetStartTime", KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK, this::SetStartTime),
 
                 // File management actions
                 new Shortcut("SaveRegister", KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK, this::SaveRegister),
@@ -183,12 +185,12 @@ public class Register extends JFrame {
                 new Shortcut("SetAbsent", KeyEvent.VK_3, KeyEvent.ALT_DOWN_MASK, () -> SetPresence(Presence.ABSENT)),
                 new Shortcut("TogglePresent", KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK, this::ToggleSelectedPresence),
                 new Shortcut("ShowStudentUIDs", KeyEvent.VK_U, KeyEvent.CTRL_DOWN_MASK, this::ShowStudentUIDs),
-                new Shortcut("ResetUID", KeyEvent.VK_R, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK, this::ResetSelectedUID),
+                new Shortcut("ResetUID", KeyEvent.VK_R, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, this::ResetSelectedUID),
 
                 // Terminal management actions
                 new Shortcut("SetActiveTerminal", KeyEvent.VK_T, KeyEvent.SHIFT_DOWN_MASK, this::SetActiveTerminal),
                 new Shortcut("RefreshConnectedTerminals", KeyEvent.VK_R, KeyEvent.SHIFT_DOWN_MASK, NFCHandler::RefreshTerminals),
-                new Shortcut("OpenTerminalTester", KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK, this::OpenTerminalTester)
+                new Shortcut("OpenTerminalTester", KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, this::OpenTerminalTester)
         };
 
         // Bind functions to key presses
@@ -247,19 +249,18 @@ public class Register extends JFrame {
     }
 
     /**
-     * Link a list of menu items to an array of runnable functions.
-     * @param items The list of items to bind the functions to
-     * @param actions The array of runnable functions to bind
+     * Create a popup menu, and link it to a list of menu entries.
+     * @param entries The list of entries to link the popup menu to.
+     * @return        The JPopupMenu, created and formatted
      */
-    private void AddMenuActions(@NotNull List<JMenuItem> items, Runnable... actions) {
-        if (items.size() != actions.length) {
-            System.err.println("Size mismatch: List of size " + items.size() + " bound to runnable array of length " + actions.length);
+    private JPopupMenu BuildMenu(MenuEntry... entries) {
+        JPopupMenu popup = new JPopupMenu();
+        for (MenuEntry e : entries) {
+            JMenuItem item = new JMenuItem(e.label);
+            item.addActionListener(event -> e.action.run());
+            popup.add(item);
         }
-
-        for (int i = 0; i < items.size() && i < actions.length; i++) {
-            final int INDEX = i;
-            items.get(i).addActionListener(event -> actions[INDEX].run());
-        }
+        return popup;
     }
 
     private @Nullable File GetFileFromSystem(String title) {
@@ -530,7 +531,7 @@ public class Register extends JFrame {
         );
     }
 
-    private void UpdateStartTime() {
+    private void SetStartTime() {
         SpinnerDateModel model = new SpinnerDateModel();
         JSpinner timeSpinner = new JSpinner(model);
 
@@ -747,6 +748,11 @@ public class Register extends JFrame {
             return false;
         }
 
+        String path = selectedFile.getAbsolutePath();
+        if (!path.toLowerCase().endsWith(".rsave")) {
+            selectedFile = new File(path + ".rsave");
+        }
+
         SetStatus(Status.SAVING_FILE);
 
         if (selectedFile.exists()) {
@@ -765,9 +771,8 @@ public class Register extends JFrame {
 
         try {
             JSONObject[] peopleObjects = STUDENTS.entrySet().stream()
-                    .map(entry -> JSONHandler.CreateStudentJSON(entry.getValue(), entry.getKey().toString()))
+                    .map(entry -> JSONHandler.CreateStudentJSON(entry.getValue(), entry.getKey().toString(), UNIQUE_IDS.getOrDefault(entry.getKey(), "N/A")))
                     .toArray(JSONObject[]::new);
-
             JSONArray jsonArray = JSONHandler.ToJSONArray(peopleObjects);
 
             JSONObject startTimeObject = new JSONObject();
@@ -852,6 +857,11 @@ public class Register extends JFrame {
 
                 int id = Integer.parseInt(obj.getString("id"));
                 String name = obj.getString("name");
+
+                try {
+                    String UID = obj.getString("UID");
+                    UNIQUE_IDS.put(id, UID);
+                } catch (JSONException err) { UNIQUE_IDS.put(id, "N/A"); }
 
                 STUDENTS.put(id, name);
                 STUDENT_LIST_MODEL.addElement(FormatListString(id, name));
@@ -994,113 +1004,50 @@ public class Register extends JFrame {
         JPanel statusPanel = new JPanel(new BorderLayout());
         statusPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-        // "Menu" drop-down sub buttons:
-        final List<JMenuItem> FILE_MENU_ITEMS = List.of(
-                new JMenuItem("Save (Ctrl + S)"),
-                new JMenuItem("Open File (Ctrl + O)"),
-                new JMenuItem("Exit (Escape)")
+        // Create popup menus
+        JPopupMenu FileMenu = BuildMenu(
+                new MenuEntry("Save As (Ctrl + S)", this::SaveRegister),
+                new MenuEntry("Load File (Ctrl + O)", this::LoadRegister),
+                new MenuEntry("Quit (Escape)", this::Quit)
         );
 
-        // "Edit" drop-down sub buttons:
-        final List<JMenuItem> EDIT_MENU_ITEMS = List.of(
-                new JMenuItem("Set start time (Ctrl + T)"),
-                new JMenuItem("Set student Present (Alt + 1)"),
-                new JMenuItem("Set student Late (Alt + 2)"),
-                new JMenuItem("Set student Absent (Alt + 3)")
+        JPopupMenu EditMenu = BuildMenu(
+                new MenuEntry("Set start time (Ctrl + T)", this::SetStartTime),
+                new MenuEntry("Set student Present (Alt + 1)", () -> SetPresence(Presence.PRESENT)),
+                new MenuEntry("Set student Late (Alt + 2)", () -> SetPresence(Presence.LATE)),
+                new MenuEntry("Set student Absent (Alt + 3)", () -> SetPresence(Presence.ABSENT))
         );
 
-        // "View" drop-down sub buttons:
-        final List<JMenuItem> VIEW_MENU_ITEMS = List.of(
-                new JMenuItem("Toggle Fullscreen (F11)")
+        JPopupMenu ViewMenu = BuildMenu(
+                new MenuEntry("Toggle fullscreen (F11)", this::ToggleFullscreen)
         );
 
-        // "Student" drop-down sub buttons:
-        final List<JMenuItem> STUDENT_MENU_ITEMS = List.of(
-                new JMenuItem("New student (Ctrl + N)"),
-                new JMenuItem("Edit selected student (Ctrl + E)"),
-                new JMenuItem("Delete selected student (Delete)"),
-                new JMenuItem("Toggle student present (Ctrl + Enter)"),
-                new JMenuItem("Show Student UIDs (Ctrl + U)")
+        JPopupMenu StudentMenu = BuildMenu(
+                new MenuEntry("New student (Ctrl + N)", this::NewStudent),
+                new MenuEntry("Edit selected student (Ctrl + E)", this::UpdateStudent),
+                new MenuEntry("Delete selected student (Delete)", () -> DeleteStudent(false)),
+                new MenuEntry("Toggle Present (Ctrl + Enter)", this::ToggleSelectedPresence),
+                new MenuEntry("Show student UIDs (Ctrl + U)", this::ShowStudentUIDs),
+                new MenuEntry("Reset selected student's UID (Ctrl + Shift + R)", this::ResetSelectedUID)
         );
 
-        // "Terminal" drop-down sub buttons:
-        final List<JMenuItem> TERMINAL_MENU_ITEMS = List.of(
-                new JMenuItem("Select active terminal (Shift + T)"),
-                new JMenuItem("Refresh connected terminals (Shift + R)"),
-                new JMenuItem("Open Terminal Tester Utility (Ctrl + Alt + T)")
+        JPopupMenu TerminalMenu = BuildMenu(
+                new MenuEntry("Select active terminal (Shift + T)", this::SetActiveTerminal),
+                new MenuEntry("Refresh connected terminals (Shift + R)", NFCHandler::RefreshTerminals),
+                new MenuEntry("Open Terminal Tester Utility (Ctrl + Shift + T)", this::OpenTerminalTester)
         );
-
-        // "File" button popup menu
-        JPopupMenu filePopupMenu = new JPopupMenu();
-        AddMenuActions(FILE_MENU_ITEMS,
-                this::SaveRegister,
-                this::LoadRegister,
-                this::Quit
-        );
-        FILE_MENU_ITEMS.forEach(filePopupMenu::add);
-
-        // "Edit" button popup menu
-        JPopupMenu editPopupMenu = new JPopupMenu();
-        AddMenuActions(EDIT_MENU_ITEMS,
-                this::UpdateStartTime,
-                () -> SetPresence(Presence.PRESENT),
-                () -> SetPresence(Presence.LATE),
-                () -> SetPresence(Presence.ABSENT)
-        );
-        EDIT_MENU_ITEMS.forEach(editPopupMenu::add);
-
-        // "View" button popup menu
-        JPopupMenu viewPopupMenu = new JPopupMenu();
-        AddMenuActions(VIEW_MENU_ITEMS,
-                this::ToggleFullscreen
-        );
-        VIEW_MENU_ITEMS.forEach(viewPopupMenu::add);
-
-        // "Student" button popup menu
-        JPopupMenu studentPopupMenu = new JPopupMenu();
-        AddMenuActions(STUDENT_MENU_ITEMS,
-                this::NewStudent,
-                this::UpdateStudent,
-                () -> DeleteStudent(false),
-                this::ToggleSelectedPresence,
-                this::ShowStudentUIDs
-        );
-        STUDENT_MENU_ITEMS.forEach(studentPopupMenu::add);
-
-        // "Terminal" button popup menu
-        JPopupMenu terminalPopupMenu = new JPopupMenu();
-        AddMenuActions(TERMINAL_MENU_ITEMS,
-                this::SetActiveTerminal,
-                NFCHandler::RefreshTerminals,
-                this::OpenTerminalTester
-        );
-        TERMINAL_MENU_ITEMS.forEach(terminalPopupMenu::add);
 
         // Drop Down Buttons
-        FileButton = new JButton("File");
-        ConfigureMenuButton(FileButton, filePopupMenu);
-
-        EditButton = new JButton("Edit");
-        ConfigureMenuButton(EditButton, editPopupMenu);
-
-        ViewButton = new JButton("View");
-        ConfigureMenuButton(ViewButton, viewPopupMenu);
-
-        StudentButton = new JButton("Student");
-        ConfigureMenuButton(StudentButton, studentPopupMenu);
-
-        TerminalButton = new JButton("Terminal");
-        ConfigureMenuButton(TerminalButton, terminalPopupMenu);
+        FileButton = CreateMenuButton("File", FileMenu);
+        EditButton = CreateMenuButton("Edit", EditMenu);
+        ViewButton = CreateMenuButton("View", ViewMenu);
+        StudentButton = CreateMenuButton("Student", StudentMenu);
+        TerminalButton = CreateMenuButton("Terminal", TerminalMenu);
 
         // Status Labels
-        StatusLabel = new JLabel("Status: READY");
-        ConfigureStatusLabel(StatusLabel, statusPanel);
-
-        TerminalLabel = new JLabel("Terminal: " + NFCHandler.GetActiveTerminalName());
-        ConfigureStatusLabel(TerminalLabel, statusPanel);
-
-        StartTimeLabel = new JLabel("Start Time: HH:MM");
-        ConfigureStatusLabel(StartTimeLabel, statusPanel);
+        StatusLabel = CreateStatusLabel("Status: READY", statusPanel);
+        TerminalLabel = CreateStatusLabel("Terminal: " + NFCHandler.GetActiveTerminalName(), statusPanel);
+        StartTimeLabel = CreateStatusLabel("Start Time: HH:MM", statusPanel);
 
         // Add panels to main ContentPane
         ContentPane.setLayout(new BorderLayout());
@@ -1108,27 +1055,33 @@ public class Register extends JFrame {
     }
 
     /**
-     * Configure a top bar menu button with an associated drop-down.
-     * @param button    The JButton to configure
-     * @param popupMenu The JPopupMenu menu to connect the button to
+     * Create and configure a top bar menu button with an associated drop-down.
+     * @param text      The text for the JButton.
+     * @param popupMenu The JPopupMenu menu to connect the button to.
+     * @return          The button, created and formatted.
      */
-    private void ConfigureMenuButton(@NotNull JButton button, @NotNull JPopupMenu popupMenu) {
+    private JButton CreateMenuButton(@NotNull String text, @NotNull JPopupMenu popupMenu) {
+        JButton button = new JButton(text);
         button.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
         button.setFocusPainted(false);
         button.setBackground(new Color(240, 240, 240));
         button.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         button.addActionListener(event -> popupMenu.show(button, 0, button.getHeight()));
+        return button;
     }
 
     /**
-     * Configure and format a JLabel using the standard Status Label format, and link it to a JPanel
-     * @param label The label to format
-     * @param panel The JPanel to link the formatted label to
+     * Configure and format a JLabel using the standard Status Label format, and link it to a JPanel.
+     * @param text  The text for the label.
+     * @param panel The JPanel to link the formatted label to.
+     * @return      The JPanel, created and formatted.
      */
-    private void ConfigureStatusLabel(JLabel label, JPanel panel) {
+    private JLabel CreateStatusLabel(@NotNull String text, JPanel panel) {
+        JLabel label = new JLabel(text);
         label.setFont(new Font("JetBrains Mono", Font.PLAIN, 20));
         label.setPreferredSize(new Dimension(200, 30));
         label.setForeground(Color.BLACK);
         panel.add(label, BorderLayout.CENTER);
+        return label;
     }
 }

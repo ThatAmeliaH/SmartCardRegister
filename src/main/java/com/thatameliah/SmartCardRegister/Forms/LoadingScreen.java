@@ -7,6 +7,9 @@ public class LoadingScreen extends JFrame {
     private JLabel LoadingLabel;
 
     public LoadingScreen() {
+        try { Thread.sleep(1); }
+        catch (InterruptedException ignored) {}
+
         final int V_HEIGHT = 200;
         final int V_WIDTH = 400;
 
