@@ -1,20 +1,19 @@
 package com.thatameliah.SmartCardRegister.Testing;
 
-import com.thatameliah.SmartCardRegister.Forms.Register;
 import com.thatameliah.SmartCardRegister.Utils.NFCHandler;
 
 public class NFCTesting {
-    /**
-     * Secondary entry point for the program. Starts into an NFC reader testing version.
-     */
-    public static void main(String[] args) {
-        while (true) {
-            System.out.println("----------------------\nWaiting for card...");
+  /**
+   * Secondary entry point for the program. Starts into an NFC reader testing version.
+   */
+  public static void main(String[] args) {
+    while (true) {
+      System.out.println("----------------------\nWaiting for card...");
 
-            String UID = NFCHandler.GetUIDFromCard(0, Register.Status.READY);
-            System.out.println("UID: " + UID);
+      String UID = NFCHandler.TestTerminal(0);
+      System.out.println("UID: " + UID);
 
-            System.out.println("----------------------\n");
-        }
+      System.out.println("----------------------\n");
     }
+  }
 }

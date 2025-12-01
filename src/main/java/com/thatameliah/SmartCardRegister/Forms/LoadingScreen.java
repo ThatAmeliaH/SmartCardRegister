@@ -3,29 +3,29 @@ package com.thatameliah.SmartCardRegister.Forms;
 import javax.swing.*;
 
 public class LoadingScreen extends JFrame {
-    private JPanel ContentPane;
-    private JLabel LoadingLabel;
+  private JPanel ContentPane;
+  private JLabel LoadingLabel;
 
-    public LoadingScreen() {
-        try { Thread.sleep(1); }
-        catch (InterruptedException ignored) {}
+  public LoadingScreen() {
+    try { Thread.sleep(1); }
+    catch (InterruptedException ignored) {}
 
-        final int V_HEIGHT = 200;
-        final int V_WIDTH = 400;
+    final int V_HEIGHT = 200;
+    final int V_WIDTH = 400;
 
-        this.setSize(V_WIDTH, V_HEIGHT);
-        this.setUndecorated(true);
-        this.setAlwaysOnTop(true);
-        this.setLocationRelativeTo(null);
+    this.setSize(V_WIDTH, V_HEIGHT);
+    this.setUndecorated(true);
+    this.setAlwaysOnTop(true);
+    this.setLocationRelativeTo(null);
 
-        this.setContentPane(ContentPane);
+    this.setContentPane(ContentPane);
 
-        this.setVisible(true);
+    this.setVisible(true);
+  }
+
+  private void createUIComponents() {
+    if (ContentPane == null) {
+      ContentPane = new JPanel();
     }
-
-    private void createUIComponents() {
-        if (ContentPane == null) {
-            ContentPane = new JPanel();
-        }
-    }
+  }
 }
