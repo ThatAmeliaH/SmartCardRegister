@@ -17,6 +17,7 @@ public class LoadingScreen extends JFrame {
     this.setUndecorated(true);
     this.setAlwaysOnTop(true);
     this.setLocationRelativeTo(null);
+    this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
     this.setContentPane(ContentPane);
 

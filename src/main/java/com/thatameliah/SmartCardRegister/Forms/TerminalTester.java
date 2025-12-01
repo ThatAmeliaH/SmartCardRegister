@@ -31,7 +31,7 @@ public class TerminalTester extends JFrame {
 
     this.setSize(V_WIDTH, V_HEIGHT);
     this.setLocationRelativeTo(null);
-    this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     this.setContentPane(ContentPane);
     this.setTitle("Terminal Tester Utility");
 

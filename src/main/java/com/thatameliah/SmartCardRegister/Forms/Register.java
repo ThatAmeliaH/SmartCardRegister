@@ -29,6 +29,7 @@ import java.util.List;
 
 
 public class Register extends JFrame {
+  public static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("HH:mm");
   private JPanel ContentPane;
   private JLabel StatusLabel;
   private JLabel TerminalLabel;
@@ -61,7 +62,7 @@ public class Register extends JFrame {
   private boolean isFullscreen = false;
   private Rectangle windowedBounds;
 
-  private final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm");
+  private final SimpleDateFormat DATE_FORMAT = SIMPLE_DATE_FORMAT;
   private Date startTime;
 
   public enum Status {
@@ -109,7 +110,7 @@ public class Register extends JFrame {
   // Main form constructor
   public Register() {
     SetStatus(Status.LOADING);
-
+    
     // Setup view size
     final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
     final double HEIGHT = SCREEN_SIZE.getHeight();
@@ -120,12 +121,10 @@ public class Register extends JFrame {
     // JFrame configuration
     this.setTitle("Register");
     this.setSize(V_WIDTH, V_HEIGHT);
-    this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     this.setLocationRelativeTo(null);
     this.addWindowListener(new WindowAdapter() {
-      @Override public void windowClosing(WindowEvent e) {
-        Quit();
-      }
+      @Override public void windowClosing(WindowEvent e) { Quit(); }
     });
 
     // Content Pane configuration
@@ -354,12 +353,12 @@ public class Register extends JFrame {
       }
     }
 
-    int id = nextID++;
-    STUDENTS.put(id, fullName);
-    PRESENCE_STATES.put(id, Presence.ABSENT);
-    UNIQUE_IDS.put(id, "N/A");
-    STUDENT_LIST_MODEL.addElement(FormatListString(id, fullName));
-
+    STUDENTS.put(nextID, fullName);
+    PRESENCE_STATES.put(nextID, Presence.ABSENT);
+    UNIQUE_IDS.put(nextID, "N/A");
+    STUDENT_LIST_MODEL.addElement(FormatListString(nextID, fullName));
+    
+    RecalculateNextID();
     SetStatus(Status.READY);
   }
 
@@ -510,7 +509,18 @@ public class Register extends JFrame {
     PRESENCE_STATES.remove(id);
     UNIQUE_IDS.remove(id);
     STUDENT_LIST_MODEL.remove(selectedIndex);
+    
+    RecalculateNextID();
     SetStatus(Status.READY);
+  }
+
+  /**
+   * Recalculates and sets "nextID" to the lowest unused ID.
+   */
+  private void RecalculateNextID() {
+    int i = 0;
+    while (STUDENTS.getOrDefault(i, null) != null) { i++; }
+    nextID = i;
   }
 
   private void ShowStudentUIDs() {
