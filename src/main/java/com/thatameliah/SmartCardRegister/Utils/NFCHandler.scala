@@ -73,8 +73,7 @@ object NFCHandler {
     try cardTerminal match {
       case Some(terminal) => terminal.connect("*")
       case None => null
-    }
-    catch { 
+    } catch {
       case _: CardException => null
       case _: CardNotPresentException => null
       case _: SecurityException => null

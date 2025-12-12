@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 
 import java.util.*;
 import java.util.List;
+import java.util.Map.Entry;
 
 
 public class Register extends JFrame {
@@ -110,7 +111,7 @@ public class Register extends JFrame {
   // Main form constructor
   public Register() {
     SetStatus(Status.LOADING);
-    
+
     // Setup view size
     final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
     final double HEIGHT = SCREEN_SIZE.getHeight();
@@ -124,7 +125,8 @@ public class Register extends JFrame {
     this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     this.setLocationRelativeTo(null);
     this.addWindowListener(new WindowAdapter() {
-      @Override public void windowClosing(WindowEvent e) { Quit(); }
+      // Override "X" button to instead run through the Quit() function.
+      @Override public void windowClosing(WindowEvent e) {Quit();}
     });
 
     // Content Pane configuration
@@ -357,7 +359,7 @@ public class Register extends JFrame {
     PRESENCE_STATES.put(nextID, Presence.ABSENT);
     UNIQUE_IDS.put(nextID, "N/A");
     STUDENT_LIST_MODEL.addElement(FormatListString(nextID, fullName));
-    
+
     RecalculateNextID();
     SetStatus(Status.READY);
   }
@@ -509,14 +511,12 @@ public class Register extends JFrame {
     PRESENCE_STATES.remove(id);
     UNIQUE_IDS.remove(id);
     STUDENT_LIST_MODEL.remove(selectedIndex);
-    
+
     RecalculateNextID();
     SetStatus(Status.READY);
   }
 
-  /**
-   * Recalculates and sets "nextID" to the lowest unused ID.
-   */
+  /** Recalculates and sets "nextID" to the lowest unused ID. */
   private void RecalculateNextID() {
     int i = 0;
     while (STUDENTS.getOrDefault(i, null) != null) { i++; }
@@ -577,9 +577,7 @@ public class Register extends JFrame {
     StartTimeLabel.setText("Start Time: " + DATE_FORMAT.format(startTime));
   }
 
-  /**
-   * Updates SelectPresenceBox to match the presence of the selected student.
-   */
+  /** Updates SelectPresenceBox to match the presence of the selected student. */
   private void UpdateFieldsFromSelection() {
     int selectedIndex = StudentList.getSelectedIndex();
     if (selectedIndex == -1) return;
@@ -591,9 +589,7 @@ public class Register extends JFrame {
     SetPresenceBox.setSelectedItem(state);
   }
 
-  /**
-   * Updates the presence state of the selected student to the state in SetPresenceBox
-   */
+  /** Updates the presence state of the selected student to the state in SetPresenceBox */
   private void UpdatePresence() {
     int selectedIndex = StudentList.getSelectedIndex();
     if (selectedIndex == -1) return;
@@ -609,9 +605,7 @@ public class Register extends JFrame {
     StudentList.repaint();
   }
 
-  /**
-   * Toggles the selected student between absent and late/present, depending on StartTime.
-   */
+  /** Toggles the selected student between absent and late/present, depending on StartTime. */
   private void ToggleSelectedPresence() {
     int selectedIndex = StudentList.getSelectedIndex();
     if (selectedIndex == -1) return;
@@ -650,7 +644,7 @@ public class Register extends JFrame {
 
   private void ListenForCards() {
     while (Listening) {
-      String UID = NFCHandler.GetUIDFromCard(0, this);
+      String UID = NFCHandler.GetUIDFromCard(0, 0, this);
       SetStatus(Status.READY);
 
       if (UID.isEmpty()) continue;
@@ -659,7 +653,7 @@ public class Register extends JFrame {
       if (selectedIndex == -1) continue;
 
       if (mode == TerminalMode.REGISTER) {
-        for (Map.Entry<Integer, String> entry : UNIQUE_IDS.entrySet()) {
+        for (Entry<Integer, String> entry : UNIQUE_IDS.entrySet()) {
           if (!entry.getValue().equals(UID)) continue;
 
           int id = entry.getKey();
@@ -1003,9 +997,7 @@ public class Register extends JFrame {
     System.exit(0);
   }
 
-  /**
-   * Custom create UI components not created by the Swing UI Designer plugin
-   */
+  /** Custom create UI components not created by the Swing UI Designer plugin */
   private void createUIComponents() {
     // Ensure ContentPane exists
     if (ContentPane == null) {

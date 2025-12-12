@@ -10,7 +10,7 @@ public class NFCTesting {
     while (true) {
       System.out.println("----------------------\nWaiting for card...");
 
-      String UID = NFCHandler.TestTerminal(0);
+      String UID = NFCHandler.TestTerminal(0, 0);
       System.out.println("UID: " + UID);
 
       System.out.println("----------------------\n");

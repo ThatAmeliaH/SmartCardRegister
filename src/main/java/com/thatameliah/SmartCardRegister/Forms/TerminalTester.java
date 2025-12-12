@@ -68,7 +68,7 @@ public class TerminalTester extends JFrame {
 
   private void ListenForCards() {
     while (running && ContentPane.isVisible()) {
-      String UID = NFCHandler.TestTerminal(0);
+      String UID = NFCHandler.TestTerminal(0, 0);
       SwingUtilities.invokeLater(() -> { UIDLabel.setText("Last UID: " + (UID.isEmpty() ? "N/A" : UID)); });
     }
   }
