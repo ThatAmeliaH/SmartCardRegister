@@ -45,6 +45,9 @@ public class Register extends JFrame {
   private JRadioButton RegisterModeRButton;
   private JRadioButton EditModeRButton;
 
+  public SettingsMenu settingsMenu;
+  public TerminalTester terminalTester;
+
   private final int MAX_NAME_LENGTH = 25;
 
   private final DefaultListModel<String> STUDENT_LIST_MODEL;
@@ -110,6 +113,8 @@ public class Register extends JFrame {
 
   // Main form constructor
   public Register() {
+    try {Thread.sleep(1);}
+    catch (InterruptedException ignored) {}
     SetStatus(Status.LOADING);
 
     // Setup view size
@@ -175,6 +180,7 @@ public class Register extends JFrame {
       new Shortcut("DeleteSelected", KeyEvent.VK_DELETE, 0, () -> DeleteStudent(false)),
       new Shortcut("SudoDeleteSelected", KeyEvent.VK_DELETE, KeyEvent.CTRL_DOWN_MASK, () -> DeleteStudent(true)),
       new Shortcut("SetStartTime", KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK, this::SetStartTime),
+      new Shortcut("OpenSettings", KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK, this::OpenSettings),
 
       // File management actions
       new Shortcut("SaveRegister", KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK, this::SaveRegister),
@@ -186,12 +192,12 @@ public class Register extends JFrame {
       new Shortcut("SetAbsent", KeyEvent.VK_3, KeyEvent.ALT_DOWN_MASK, () -> SetPresence(Presence.ABSENT)),
       new Shortcut("TogglePresent", KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK, this::ToggleSelectedPresence),
       new Shortcut("ShowStudentUIDs", KeyEvent.VK_U, KeyEvent.CTRL_DOWN_MASK, this::ShowStudentUIDs),
-      new Shortcut("ResetUID", KeyEvent.VK_R, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, this::ResetSelectedUID),
+      new Shortcut("ResetUID", KeyEvent.VK_R, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK, this::ResetSelectedUID),
 
       // Terminal management actions
       new Shortcut("SetActiveTerminal", KeyEvent.VK_T, KeyEvent.SHIFT_DOWN_MASK, this::SetActiveTerminal),
       new Shortcut("RefreshConnectedTerminals", KeyEvent.VK_R, KeyEvent.SHIFT_DOWN_MASK, NFCHandler::RefreshTerminals),
-      new Shortcut("OpenTerminalTester", KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, this::OpenTerminalTester)
+      new Shortcut("OpenTerminalTester", KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK, this::OpenTerminalTester)
     };
 
     // Bind functions to key presses
@@ -948,8 +954,17 @@ public class Register extends JFrame {
   private void SetTerminalMode(TerminalMode newMode) { this.mode = newMode; }
 
   public void OpenTerminalTester() {
-    TerminalTester terminalTester = new TerminalTester(this);
+    if (terminalTester != null) return;
+
+    terminalTester = new TerminalTester(this);
     terminalTester.setVisible(true);
+  }
+
+  public void OpenSettings() {
+    if (settingsMenu != null) return;
+
+    settingsMenu = new SettingsMenu(this);
+    settingsMenu.setVisible(true);
   }
 
   private void SetupStopOnClose() {
@@ -1012,6 +1027,7 @@ public class Register extends JFrame {
     JPopupMenu FileMenu = BuildMenu(
       new MenuEntry("Save As (Ctrl + S)", this::SaveRegister),
       new MenuEntry("Load File (Ctrl + O)", this::LoadRegister),
+      new MenuEntry("Open Settings (Ctrl + Shift + S)", this::OpenSettings),
       new MenuEntry("Quit (Escape)", this::Quit)
     );
 

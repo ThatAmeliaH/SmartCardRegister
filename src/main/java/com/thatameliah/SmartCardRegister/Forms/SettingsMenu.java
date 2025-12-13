@@ -1,27 +1,39 @@
 package com.thatameliah.SmartCardRegister.Forms;
 
 import com.thatameliah.SmartCardRegister.Utils.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.HashMap;
+import java.util.Map;
 
-public class TerminalTester extends JFrame {
-  private final Register ParentFrame;
+public class SettingsMenu extends JFrame {
   private JPanel ContentPane;
-  private JLabel TerminalLabel;
-  private JLabel UIDLabel;
-
-  private volatile boolean running = false;
-  private Thread cardListenerThread;
+  private JRadioButton LightModeButton;
+  private JRadioButton DarkModeButton;
+  private JLabel ThemeLabel;
+  private JButton ResetDefaultsButton;
 
   public record Shortcut(String name, int keyCode, int modifiers, Runnable handler) {}
 
-  public TerminalTester(Register ParentFrame) {
+  public enum Setting {
+    THEME,
+  }
+
+  private final Map<String, JRadioButton> THEME_STATES = new HashMap<>() {{
+    put("Light", LightModeButton);
+    put("Dark", DarkModeButton);
+  }};
+
+  public SettingsMenu(Register ParentFrame) {
     try { Thread.sleep(1); }
     catch (InterruptedException ignored) {}
-    this.ParentFrame = ParentFrame;
 
     final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
     final double HEIGHT = SCREEN_SIZE.getHeight();
@@ -31,12 +43,12 @@ public class TerminalTester extends JFrame {
 
     this.setSize(V_WIDTH, V_HEIGHT);
     this.setLocationRelativeTo(null);
-    this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     this.setContentPane(ContentPane);
-    this.setTitle("Terminal Tester Utility");
+    this.setTitle("Settings");
     this.addWindowListener(new WindowAdapter() {
       @Override public void windowClosing(WindowEvent e) {
-        ParentFrame.terminalTester = null;
+        ParentFrame.settingsMenu = null;
         dispose();
       }
     });
@@ -44,39 +56,48 @@ public class TerminalTester extends JFrame {
     ContentPane.setFocusable(true);
     ContentPane.requestFocus();
 
-    TerminalLabel.setText("Terminal: " + NFCHandler.GetActiveTerminalName());
-
     Shortcut[] shortcuts = {
       new Shortcut("Close", KeyEvent.VK_ESCAPE, 0, this::dispose),
-      new Shortcut("Refresh", KeyEvent.VK_R, KeyEvent.CTRL_DOWN_MASK, this::Restart)
     };
     for (var shortcut : shortcuts) { BindKey(shortcut); }
 
-    SetupStopOnClose();
-    StartCardListener();
+    SetupMenuButtons();
+    SetActiveSettings();
   }
 
-  private void StartCardListener() {
-    running = true;
-
-    cardListenerThread = new Thread(this::ListenForCards);
-    cardListenerThread.setDaemon(true);
-    cardListenerThread.start();
-  }
-
-  public void StopCardListener() {
-    running = false;
-
-    if (cardListenerThread != null) {
-      cardListenerThread.interrupt();
+  private void createUIComponents() {
+    if (ContentPane == null) {
+      ContentPane = new JPanel();
     }
   }
 
-  private void ListenForCards() {
-    while (running && ContentPane.isVisible()) {
-      String UID = NFCHandler.TestTerminal(0, 0);
-      SwingUtilities.invokeLater(() -> { UIDLabel.setText("Last UID: " + (UID.isEmpty() ? "N/A" : UID)); });
-    }
+  private void SetupMenuButtons() {
+    LightModeButton.addActionListener(event -> SetSetting(Setting.THEME, "Light"));
+    DarkModeButton.addActionListener(event -> SetSetting(Setting.THEME, "Dark"));
+
+    ResetDefaultsButton.addActionListener(event -> ResetAll());
+  }
+
+  private void SetActiveSettings() {
+    String theme = SettingsHandler.Get(Setting.THEME);
+    THEME_STATES.get(theme).setSelected(true);
+  }
+
+  private void SetSetting(Setting setting, String state) {
+    SettingsHandler.Update(setting, state);
+  }
+
+  private void ResetAll() {
+    int confirm = JOptionPane.showConfirmDialog(
+      this,
+      "You are about to reset all settings to their default state, are you sure you would like to continue?\nThis action is irreversable!",
+      "Reset",
+      JOptionPane.YES_NO_OPTION
+    );
+    if (confirm == JOptionPane.YES_OPTION) return;
+
+    SettingsHandler.ResetAll();
+    SetActiveSettings();
   }
 
   private void BindKey(@NotNull Shortcut shortcut) {
@@ -105,30 +126,5 @@ public class TerminalTester extends JFrame {
         catch (Exception ex) { System.err.println(ex.getMessage()); }
       }
     });
-  }
-
-  private void SetupStopOnClose() {
-    this.addComponentListener(new ComponentAdapter() {
-      @Override public void componentHidden(ComponentEvent e) { StopCardListener(); }
-    });
-
-    this.addWindowListener(new WindowAdapter() {
-      @Override public void windowClosing(WindowEvent e) { StopCardListener(); }
-      @Override public void windowClosed(WindowEvent e) { StopCardListener(); }
-    });
-  }
-
-  private void Restart() {
-    ParentFrame.OpenTerminalTester();
-    this.dispose();
-  }
-
-  private void createUIComponents() {
-    if (ContentPane == null) {
-      ContentPane = new JPanel();
-    }
-
-    TerminalLabel = new JLabel("Terminal: " + NFCHandler.GetActiveTerminalName());
-    TerminalLabel.setFont(new Font("JetBrains Mono", Font.PLAIN, 20));
   }
 }
