@@ -90,7 +90,7 @@ public class SettingsMenu extends JFrame {
   private void ResetAll() {
     int confirm = JOptionPane.showConfirmDialog(
       this,
-      "You are about to reset all settings to their default state, are you sure you would like to continue?\nThis action is irreversable!",
+      "You are about to reset all settings to their default state, are you sure you would like to continue?\nThis action is irreversible!",
       "Reset",
       JOptionPane.YES_NO_OPTION
     );
