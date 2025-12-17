@@ -1,5 +1,6 @@
 package com.thatameliah.SmartCardRegister.Forms;
 
+import com.thatameliah.SmartCardRegister.Exceptions.*;
 import com.thatameliah.SmartCardRegister.Utils.*;
 
 import org.jetbrains.annotations.Contract;
@@ -26,11 +27,10 @@ import java.text.SimpleDateFormat;
 
 import java.util.*;
 import java.util.List;
-import java.util.Map.Entry;
-
 
 public class Register extends JFrame {
   public static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("HH:mm");
+  
   private JPanel ContentPane;
   private JLabel StatusLabel;
   private JLabel TerminalLabel;
@@ -45,11 +45,8 @@ public class Register extends JFrame {
   private JRadioButton RegisterModeRButton;
   private JRadioButton EditModeRButton;
 
-  public SettingsMenu settingsMenu;
-  public TerminalTester terminalTester;
-
   private final int MAX_NAME_LENGTH = 25;
-
+  
   private final DefaultListModel<String> STUDENT_LIST_MODEL;
 
   private final Map<Integer, String> STUDENTS = new HashMap<>();
@@ -62,6 +59,9 @@ public class Register extends JFrame {
   private volatile boolean Listening = false;
   private Thread CardListenerThread;
   private int nextID = 1;
+
+  public boolean TerminalTesterOpen;
+  public boolean SettingsMenuOpen;
 
   private boolean isFullscreen = false;
   private Rectangle windowedBounds;
@@ -113,10 +113,8 @@ public class Register extends JFrame {
 
   // Main form constructor
   public Register() {
-    try {Thread.sleep(1);}
-    catch (InterruptedException ignored) {}
     SetStatus(Status.LOADING);
-
+    
     // Setup view size
     final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
     final double HEIGHT = SCREEN_SIZE.getHeight();
@@ -130,8 +128,7 @@ public class Register extends JFrame {
     this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     this.setLocationRelativeTo(null);
     this.addWindowListener(new WindowAdapter() {
-      // Override "X" button to instead run through the Quit() function.
-      @Override public void windowClosing(WindowEvent e) {Quit();}
+      @Override public void windowClosing(WindowEvent e) { Quit(); }
     });
 
     // Content Pane configuration
@@ -173,6 +170,7 @@ public class Register extends JFrame {
       // JFrame actions
       new Shortcut("Exit", KeyEvent.VK_ESCAPE, 0, this::Quit),
       new Shortcut("ToggleFullscreen", KeyEvent.VK_F11, 0, this::ToggleFullscreen),
+      new Shortcut("OpenSettings", KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK, this::OpenSettings),
 
       // Register management actions
       new Shortcut("NewStudent", KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK, this::NewStudent),
@@ -180,7 +178,6 @@ public class Register extends JFrame {
       new Shortcut("DeleteSelected", KeyEvent.VK_DELETE, 0, () -> DeleteStudent(false)),
       new Shortcut("SudoDeleteSelected", KeyEvent.VK_DELETE, KeyEvent.CTRL_DOWN_MASK, () -> DeleteStudent(true)),
       new Shortcut("SetStartTime", KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK, this::SetStartTime),
-      new Shortcut("OpenSettings", KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK, this::OpenSettings),
 
       // File management actions
       new Shortcut("SaveRegister", KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK, this::SaveRegister),
@@ -192,7 +189,7 @@ public class Register extends JFrame {
       new Shortcut("SetAbsent", KeyEvent.VK_3, KeyEvent.ALT_DOWN_MASK, () -> SetPresence(Presence.ABSENT)),
       new Shortcut("TogglePresent", KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK, this::ToggleSelectedPresence),
       new Shortcut("ShowStudentUIDs", KeyEvent.VK_U, KeyEvent.CTRL_DOWN_MASK, this::ShowStudentUIDs),
-      new Shortcut("ResetUID", KeyEvent.VK_R, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK, this::ResetSelectedUID),
+      new Shortcut("ResetUID", KeyEvent.VK_R, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, this::ResetSelectedUID),
 
       // Terminal management actions
       new Shortcut("SetActiveTerminal", KeyEvent.VK_T, KeyEvent.SHIFT_DOWN_MASK, this::SetActiveTerminal),
@@ -225,33 +222,25 @@ public class Register extends JFrame {
 
   /**
    * Binds a shortcut's KeyCode and Modifiers to its Runnable function
-   * @param shortcut The shortcut to bind
+   * @param shortcut                  The shortcut to bind
+   * @throws InvalidShortcutException If the provided KeyCode has already been bound or does not exist
    */
-  private void BindKey(@NotNull Shortcut shortcut) {
+  private void BindKey(@NotNull Shortcut shortcut) throws InvalidShortcutException {
     KeyStroke keyStroke = KeyStroke.getKeyStroke(shortcut.keyCode, shortcut.modifiers);
-    if (keyStroke == null) {
-      System.err.println("Invalid KeyStroke: " + shortcut.keyCode);
-      return;
-    }
+    if (keyStroke == null) { throw new InvalidShortcutException("Invalid KeyStroke: Cannot parse KeyStroke for shortcut \"" + shortcut.keyCode + "\""); }
 
     // Gets the input map and action map for the main content pane
     InputMap inputMap = ContentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
     ActionMap actionMap = ContentPane.getActionMap();
 
-    // Check for existing bindings and overwrite if present
+    // Check for existing bindings and throw an exception if present
     Object oldBinding = inputMap.get(keyStroke);
-    if (oldBinding != null) {
-      inputMap.remove(keyStroke);
-      actionMap.remove(oldBinding);
-    }
+    if (oldBinding != null) { throw new InvalidShortcutException("Duplicate Shortcut: KeyStroke \"" + keyStroke + "\" already bound to \""+ oldBinding + "\""); }
 
     // Add the new bindings to the input and action maps
     inputMap.put(keyStroke, shortcut.name);
     actionMap.put(shortcut.name, new AbstractAction() {
-      @Override public void actionPerformed(ActionEvent e) {
-        try { shortcut.handler.run(); }
-        catch (Exception ex) { System.err.println(ex.getMessage()); }
-      }
+      @Override public void actionPerformed(ActionEvent e) { shortcut.handler.run(); }
     });
   }
 
@@ -365,7 +354,7 @@ public class Register extends JFrame {
     PRESENCE_STATES.put(nextID, Presence.ABSENT);
     UNIQUE_IDS.put(nextID, "N/A");
     STUDENT_LIST_MODEL.addElement(FormatListString(nextID, fullName));
-
+    
     RecalculateNextID();
     SetStatus(Status.READY);
   }
@@ -517,12 +506,14 @@ public class Register extends JFrame {
     PRESENCE_STATES.remove(id);
     UNIQUE_IDS.remove(id);
     STUDENT_LIST_MODEL.remove(selectedIndex);
-
+    
     RecalculateNextID();
     SetStatus(Status.READY);
   }
 
-  /** Recalculates and sets "nextID" to the lowest unused ID. */
+  /**
+   * Recalculates and sets "nextID" to the lowest unused ID.
+   */
   private void RecalculateNextID() {
     int i = 0;
     while (STUDENTS.getOrDefault(i, null) != null) { i++; }
@@ -583,7 +574,9 @@ public class Register extends JFrame {
     StartTimeLabel.setText("Start Time: " + DATE_FORMAT.format(startTime));
   }
 
-  /** Updates SelectPresenceBox to match the presence of the selected student. */
+  /**
+   * Updates SelectPresenceBox to match the presence of the selected student.
+   */
   private void UpdateFieldsFromSelection() {
     int selectedIndex = StudentList.getSelectedIndex();
     if (selectedIndex == -1) return;
@@ -595,7 +588,9 @@ public class Register extends JFrame {
     SetPresenceBox.setSelectedItem(state);
   }
 
-  /** Updates the presence state of the selected student to the state in SetPresenceBox */
+  /**
+   * Updates the presence state of the selected student to the state in SetPresenceBox
+   */
   private void UpdatePresence() {
     int selectedIndex = StudentList.getSelectedIndex();
     if (selectedIndex == -1) return;
@@ -611,7 +606,9 @@ public class Register extends JFrame {
     StudentList.repaint();
   }
 
-  /** Toggles the selected student between absent and late/present, depending on StartTime. */
+  /**
+   * Toggles the selected student between absent and late/present, depending on StartTime.
+   */
   private void ToggleSelectedPresence() {
     int selectedIndex = StudentList.getSelectedIndex();
     if (selectedIndex == -1) return;
@@ -659,7 +656,7 @@ public class Register extends JFrame {
       if (selectedIndex == -1) continue;
 
       if (mode == TerminalMode.REGISTER) {
-        for (Entry<Integer, String> entry : UNIQUE_IDS.entrySet()) {
+        for (Map.Entry<Integer, String> entry : UNIQUE_IDS.entrySet()) {
           if (!entry.getValue().equals(UID)) continue;
 
           int id = entry.getKey();
@@ -954,17 +951,19 @@ public class Register extends JFrame {
   private void SetTerminalMode(TerminalMode newMode) { this.mode = newMode; }
 
   public void OpenTerminalTester() {
-    if (terminalTester != null) return;
-
-    terminalTester = new TerminalTester(this);
+    if (!TerminalTesterOpen) return;
+    
+    TerminalTester terminalTester = new TerminalTester(this);
     terminalTester.setVisible(true);
+    TerminalTesterOpen = true;
   }
-
+  
   public void OpenSettings() {
-    if (settingsMenu != null) return;
-
-    settingsMenu = new SettingsMenu(this);
+    if (!SettingsMenuOpen) return;
+    
+    SettingsMenu settingsMenu = new SettingsMenu(this);
     settingsMenu.setVisible(true);
+    SettingsMenuOpen = true;
   }
 
   private void SetupStopOnClose() {
@@ -1012,7 +1011,9 @@ public class Register extends JFrame {
     System.exit(0);
   }
 
-  /** Custom create UI components not created by the Swing UI Designer plugin */
+  /**
+   * Custom create UI components not created by the Swing UI Designer plugin
+   */
   private void createUIComponents() {
     // Ensure ContentPane exists
     if (ContentPane == null) {
@@ -1027,7 +1028,7 @@ public class Register extends JFrame {
     JPopupMenu FileMenu = BuildMenu(
       new MenuEntry("Save As (Ctrl + S)", this::SaveRegister),
       new MenuEntry("Load File (Ctrl + O)", this::LoadRegister),
-      new MenuEntry("Open Settings (Ctrl + Shift + S)", this::OpenSettings),
+      new MenuEntry("Open Settings (Ctrl + Alt + S)", this::OpenSettings),
       new MenuEntry("Quit (Escape)", this::Quit)
     );
 

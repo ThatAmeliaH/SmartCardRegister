@@ -1,5 +1,6 @@
 package com.thatameliah.SmartCardRegister.Forms;
 
+import com.thatameliah.SmartCardRegister.Exceptions.*;
 import com.thatameliah.SmartCardRegister.Utils.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -8,7 +9,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 public class TerminalTester extends JFrame {
-  private final Register ParentFrame;
+  private final Register parentRegister;
   private JPanel ContentPane;
   private JLabel TerminalLabel;
   private JLabel UIDLabel;
@@ -18,10 +19,10 @@ public class TerminalTester extends JFrame {
 
   public record Shortcut(String name, int keyCode, int modifiers, Runnable handler) {}
 
-  public TerminalTester(Register ParentFrame) {
+  public TerminalTester(Register parentRegister) {
     try { Thread.sleep(1); }
     catch (InterruptedException ignored) {}
-    this.ParentFrame = ParentFrame;
+    this.parentRegister = parentRegister;
 
     final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
     final double HEIGHT = SCREEN_SIZE.getHeight();
@@ -31,12 +32,12 @@ public class TerminalTester extends JFrame {
 
     this.setSize(V_WIDTH, V_HEIGHT);
     this.setLocationRelativeTo(null);
-    this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     this.setContentPane(ContentPane);
     this.setTitle("Terminal Tester Utility");
     this.addWindowListener(new WindowAdapter() {
       @Override public void windowClosing(WindowEvent e) {
-        ParentFrame.terminalTester = null;
+        parentRegister.TerminalTesterOpen = false;
         dispose();
       }
     });
@@ -78,32 +79,23 @@ public class TerminalTester extends JFrame {
       SwingUtilities.invokeLater(() -> { UIDLabel.setText("Last UID: " + (UID.isEmpty() ? "N/A" : UID)); });
     }
   }
-
-  private void BindKey(@NotNull Shortcut shortcut) {
+  
+  private void BindKey(@NotNull Shortcut shortcut) throws InvalidShortcutException {
     KeyStroke keyStroke = KeyStroke.getKeyStroke(shortcut.keyCode, shortcut.modifiers);
-    if (keyStroke == null) {
-      System.err.println("Invalid KeyStroke: " + shortcut.keyCode);
-      return;
-    }
+    if (keyStroke == null) { throw new InvalidShortcutException("Invalid KeyStroke: Cannot parse KeyStroke for shortcut \"" + shortcut.keyCode + "\""); }
 
     // Gets the input map and action map for the main content pane
     InputMap inputMap = ContentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
     ActionMap actionMap = ContentPane.getActionMap();
 
-    // Check for existing bindings and overwrite if present
+    // Check for existing bindings and throw an exception if present
     Object oldBinding = inputMap.get(keyStroke);
-    if (oldBinding != null) {
-      inputMap.remove(keyStroke);
-      actionMap.remove(oldBinding);
-    }
+    if (oldBinding != null) { throw new InvalidShortcutException("Duplicate Shortcut: KeyStroke \"" + keyStroke + "\" already bound to \""+ oldBinding + "\""); }
 
     // Add the new bindings to the input and action maps
     inputMap.put(keyStroke, shortcut.name);
     actionMap.put(shortcut.name, new AbstractAction() {
-      @Override public void actionPerformed(ActionEvent e) {
-        try { shortcut.handler.run(); }
-        catch (Exception ex) { System.err.println(ex.getMessage()); }
-      }
+      @Override public void actionPerformed(ActionEvent e) { shortcut.handler.run(); }
     });
   }
 
@@ -119,7 +111,7 @@ public class TerminalTester extends JFrame {
   }
 
   private void Restart() {
-    ParentFrame.OpenTerminalTester();
+    parentRegister.OpenTerminalTester();
     this.dispose();
   }
 

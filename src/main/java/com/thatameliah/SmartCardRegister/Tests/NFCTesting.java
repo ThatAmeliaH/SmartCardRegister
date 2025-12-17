@@ -1,4 +1,4 @@
-package com.thatameliah.SmartCardRegister.Testing;
+package com.thatameliah.SmartCardRegister.Tests;
 
 import com.thatameliah.SmartCardRegister.Utils.NFCHandler;
 
