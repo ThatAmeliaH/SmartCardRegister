@@ -29,8 +29,6 @@ import java.util.*;
 import java.util.List;
 
 public class Register extends JFrame {
-  public static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("HH:mm");
-  
   private JPanel ContentPane;
   private JLabel StatusLabel;
   private JLabel TerminalLabel;
@@ -66,9 +64,12 @@ public class Register extends JFrame {
   private boolean isFullscreen = false;
   private Rectangle windowedBounds;
 
-  private final SimpleDateFormat DATE_FORMAT = SIMPLE_DATE_FORMAT;
+  private final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm");
   private Date startTime;
 
+  public TerminalMode mode = TerminalMode.REGISTER;
+  public Status status = Status.LOADING;
+  
   public enum Status {
     LOADING,
     READY,
@@ -90,7 +91,6 @@ public class Register extends JFrame {
     REGISTER,
     EDIT,
   }
-  public TerminalMode mode = TerminalMode.REGISTER;
 
   private final Map<Status, String> STATUS_MAP = new HashMap<>() {{
     put(Status.READY, "Ready");
@@ -108,8 +108,6 @@ public class Register extends JFrame {
     put(Presence.ABSENT, new Color(255, 150, 200));
     put(Presence.LATE, new Color(255, 200, 50));
   }};
-
-  public Status status;
 
   // Main form constructor
   public Register() {
@@ -227,7 +225,7 @@ public class Register extends JFrame {
    */
   private void BindKey(@NotNull Shortcut shortcut) throws InvalidShortcutException {
     KeyStroke keyStroke = KeyStroke.getKeyStroke(shortcut.keyCode, shortcut.modifiers);
-    if (keyStroke == null) { throw new InvalidShortcutException("Invalid KeyStroke: Cannot parse KeyStroke for shortcut \"" + shortcut.keyCode + "\""); }
+    if (keyStroke == null) { throw new InvalidShortcutException("Invalid KeyStroke: Cannot parse KeyStroke for shortcut \"" + shortcut + "\""); }
 
     // Gets the input map and action map for the main content pane
     InputMap inputMap = ContentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
@@ -251,11 +249,13 @@ public class Register extends JFrame {
    */
   private JPopupMenu BuildMenu(MenuEntry... entries) {
     JPopupMenu popup = new JPopupMenu();
-    for (MenuEntry e : entries) {
-      JMenuItem item = new JMenuItem(e.label);
-      item.addActionListener(event -> e.action.run());
+    
+    for (MenuEntry entry : entries) {
+      JMenuItem item = new JMenuItem(entry.label);
+      item.addActionListener(event -> entry.action.run());
       popup.add(item);
     }
+    
     return popup;
   }
 
@@ -1028,7 +1028,6 @@ public class Register extends JFrame {
     JPopupMenu FileMenu = BuildMenu(
       new MenuEntry("Save As (Ctrl + S)", this::SaveRegister),
       new MenuEntry("Load File (Ctrl + O)", this::LoadRegister),
-      new MenuEntry("Open Settings (Ctrl + Alt + S)", this::OpenSettings),
       new MenuEntry("Quit (Escape)", this::Quit)
     );
 
@@ -1040,7 +1039,8 @@ public class Register extends JFrame {
     );
 
     JPopupMenu ViewMenu = BuildMenu(
-      new MenuEntry("Toggle fullscreen (F11)", this::ToggleFullscreen)
+      new MenuEntry("Toggle fullscreen (F11)", this::ToggleFullscreen),
+      new MenuEntry("Open Settings (Ctrl + Alt + S)", this::OpenSettings)
     );
 
     JPopupMenu StudentMenu = BuildMenu(

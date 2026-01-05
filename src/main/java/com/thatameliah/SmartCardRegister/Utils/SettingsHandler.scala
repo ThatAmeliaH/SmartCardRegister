@@ -3,7 +3,6 @@ package com.thatameliah.SmartCardRegister.Utils
 import com.thatameliah.SmartCardRegister.Forms.SettingsMenu.Setting
 
 import java.util
-import scala.jdk.CollectionConverters._
 
 object SettingsHandler {
   // TODO: Link to a ".settings" file.

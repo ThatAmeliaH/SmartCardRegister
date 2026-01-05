@@ -1,6 +1,6 @@
 package com.thatameliah.SmartCardRegister.Utils
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.MapHasAsJava
 import org.json.{JSONArray, JSONObject}
 
 object JSONHandler {
@@ -12,7 +12,7 @@ object JSONHandler {
   def CreateStudentJSON(name: String, studentId: String, UID: String): JSONObject = {
     if (name == null || studentId == null) { throw new NullPointerException }
 
-    val studentMap = Map(
+    val studentMap: java.util.Map[String, String] = Map(
       "name" -> name,
       "id" -> studentId,
       "UID" -> UID
@@ -27,7 +27,7 @@ object JSONHandler {
    */
   def ToJSONArray(objects: Array[JSONObject]): JSONArray = {
     val array: JSONArray = new JSONArray
-
+    
     objects.foreach(obj => array.put(obj))
     array
   }
@@ -36,14 +36,11 @@ object JSONHandler {
    * Converts a JSONArray into a formatted JSON String.
    * @param array The JSONArray to convert
    * @param indentFactor The number of spaces to indent for pretty-printing
-   * @return Formatted JSON string
+   * @return The formatted JSON string
    */
   def ToJSONString(array: JSONArray, indentFactor: Int): String = {
-    if (array == null) {
-      "[]"
-    } else {
-      array.toString(indentFactor)
-    }
+    if (array == null) "[]"
+    else array.toString(indentFactor)
   }
 
   /**
@@ -52,10 +49,7 @@ object JSONHandler {
    * @return JSONArray parsed from the string
    */
   def ParseJSONArray(jsonString: String): JSONArray = {
-    if (jsonString == null || jsonString.isEmpty) {
-      new JSONArray
-    } else {
-      new JSONArray(jsonString)
-    }
+    if (jsonString == null || jsonString.isEmpty) new JSONArray
+    else new JSONArray(jsonString)
   }
 }

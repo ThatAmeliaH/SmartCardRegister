@@ -116,7 +116,7 @@ object NFCHandler {
 
   /**
    * Refreshes the list of connected terminals.
-   * @return The new terminal, this will always be terminals[0], or None if no terminals are connected.
+   * @return The new terminal, this will always be terminals[0], or null if no terminals are connected.
    */
   def RefreshTerminals: Option[CardTerminal] = {
     try terminals = factory.terminals.list
@@ -126,7 +126,7 @@ object NFCHandler {
 
     cardTerminal = {
       if (!terminals.isEmpty) Some(terminals.get(0))
-      else None
+      else null
     }; cardTerminal
   }
 }
