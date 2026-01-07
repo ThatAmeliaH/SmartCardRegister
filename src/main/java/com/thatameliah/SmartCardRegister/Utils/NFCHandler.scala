@@ -22,10 +22,10 @@ object NFCHandler {
    * @return The UID of the presented card as a String of Hex values
    */
   def GetUIDFromCard(cardPresentTimeout: Long, cardAbsentTimeout: Long, register: Register): String = {
-    if (!register.status.equals(Register.Status.READY)) return new String
+    if (register.status != Register.Status.READY) return new String
     if (cardTerminal.isEmpty) return new String
+    
     val terminal = cardTerminal.get
-
     terminal.waitForCardPresent(cardPresentTimeout)
 
     val card: Card = ConnectToCard
@@ -76,7 +76,6 @@ object NFCHandler {
     } catch {
       case _: CardException => null
       case _: CardNotPresentException => null
-      case _: SecurityException => null
     }
   }
 

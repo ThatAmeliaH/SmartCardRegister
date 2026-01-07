@@ -1081,13 +1081,15 @@ public class Register extends JFrame {
    * @param popupMenu The JPopupMenu menu to connect the button to.
    * @return          The button, created and formatted.
    */
-  private JButton CreateMenuButton(@NotNull String text, @NotNull JPopupMenu popupMenu) {
+  private @NotNull JButton CreateMenuButton(@NotNull String text, @NotNull JPopupMenu popupMenu) {
     JButton button = new JButton(text);
+    
     button.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
     button.setFocusPainted(false);
     button.setBackground(new Color(240, 240, 240));
     button.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
     button.addActionListener(event -> popupMenu.show(button, 0, button.getHeight()));
+    
     return button;
   }
 
@@ -1095,14 +1097,16 @@ public class Register extends JFrame {
    * Configure and format a JLabel using the standard Status Label format, and link it to a JPanel.
    * @param text  The text for the label.
    * @param panel The JPanel to link the formatted label to.
-   * @return      The JPanel, created and formatted.
+   * @return      The JLabel, created and formatted.
    */
-  private JLabel CreateStatusLabel(@NotNull String text, JPanel panel) {
+  private @NotNull JLabel CreateStatusLabel(@NotNull String text, @NotNull JPanel panel) {
     JLabel label = new JLabel(text);
+    
     label.setFont(new Font("JetBrains Mono", Font.PLAIN, 20));
     label.setPreferredSize(new Dimension(200, 30));
     label.setForeground(Color.BLACK);
     panel.add(label, BorderLayout.CENTER);
+    
     return label;
   }
 }
