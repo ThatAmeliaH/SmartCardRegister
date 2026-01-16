@@ -58,9 +58,12 @@ public class Register extends JFrame {
   private Thread CardListenerThread;
   private int nextID = 1;
 
-  public boolean TerminalTesterOpen;
-  public boolean SettingsMenuOpen;
+  private boolean TerminalTesterOpen = false;
+  private boolean SettingsMenuOpen = false;
 
+  public void SetSettingsMenuOpen(boolean newSettingsState) { SettingsMenuOpen = newSettingsState; }
+  public void SetTerminalTesterOpen(boolean newTerminalTesterState) { TerminalTesterOpen = newTerminalTesterState; }
+  
   private boolean isFullscreen = false;
   private Rectangle windowedBounds;
 
@@ -955,7 +958,7 @@ public class Register extends JFrame {
     
     TerminalTester terminalTester = new TerminalTester(this);
     terminalTester.setVisible(true);
-    TerminalTesterOpen = true;
+    this.SetTerminalTesterOpen(true);
   }
   
   public void OpenSettings() {
@@ -963,7 +966,7 @@ public class Register extends JFrame {
     
     SettingsMenu settingsMenu = new SettingsMenu(this);
     settingsMenu.setVisible(true);
-    SettingsMenuOpen = true;
+    this.SetSettingsMenuOpen(true);
   }
 
   private void SetupStopOnClose() {

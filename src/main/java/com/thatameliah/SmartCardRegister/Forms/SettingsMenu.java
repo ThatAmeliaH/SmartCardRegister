@@ -29,7 +29,7 @@ public class SettingsMenu extends JFrame {
     this.setTitle("Settings");
     this.addWindowListener(new WindowAdapter() {
       @Override public void windowClosing(WindowEvent e) {
-        parentRegister.TerminalTesterOpen = false;
+        parentRegister.SetSettingsMenuOpen(false);
         dispose();
       }
     });
