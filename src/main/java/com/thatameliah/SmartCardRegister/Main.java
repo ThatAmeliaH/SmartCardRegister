@@ -10,7 +10,7 @@ package com.thatameliah.SmartCardRegister;
 import com.thatameliah.SmartCardRegister.Forms.*;
 
 // External libraries
-import javax.swing.*;
+import java.awt.EventQueue;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -20,16 +20,16 @@ public class Main {
     LoadingScreen loadingScreen = new LoadingScreen();
 
     Instant start = Instant.now();
-    Register registerUI = new Register();
+    Register register = new Register();
     Instant end = Instant.now();
 
     Duration duration = Duration.between(start, end);
     System.out.println("Register loaded in " + duration.toMillis() + "ms (" + duration.toNanos() + " ns)");
 
     // Invoke later to allow all UI components to create before showing to the user
-    SwingUtilities.invokeLater(() -> {
+    EventQueue.invokeLater(() -> {
       loadingScreen.dispose();
-      registerUI.setVisible(true);
+      register.setVisible(true);
     });
   }
 }

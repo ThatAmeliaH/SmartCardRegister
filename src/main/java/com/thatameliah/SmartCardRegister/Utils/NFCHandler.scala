@@ -31,14 +31,14 @@ object NFCHandler {
     val card: Card = ConnectToCard
     if (card == null) return new String
 
-    val response: ResponseAPDU = TransmitStandardCommand(card, standardCommand)
+    val response: ResponseAPDU = TransmitCommand(card, standardCommand)
     if (response == null) return new String
     if (response.getSW1 == 0x63 && response.getSW2 == 0x00) return new String
     val UID: Array[Byte] = response.getData
 
     register.SetStatus(Register.Status.WAITING_FOR_CARD_ABSENT)
     terminal.waitForCardAbsent(cardPresentTimeout)
-    ToHex(UID)
+    ToHexString(UID)
   }
 
   /**
@@ -56,13 +56,13 @@ object NFCHandler {
     val card: Card = ConnectToCard
     if (card == null) return new String
 
-    val response: ResponseAPDU = TransmitStandardCommand(card, standardCommand)
+    val response: ResponseAPDU = TransmitCommand(card, standardCommand)
     if (response == null) return new String
     if (response.getSW1 == 0x63 && response.getSW2 == 0x00) return new String
     val UID: Array[Byte] = response.getData
 
     terminal.waitForCardAbsent(cardAbsentTimeout)
-    ToHex(UID)
+    ToHexString(UID)
   }
 
   /**
@@ -75,7 +75,6 @@ object NFCHandler {
       case None => null
     } catch {
       case _: CardException => null
-      case _: CardNotPresentException => null
     }
   }
 
@@ -85,18 +84,18 @@ object NFCHandler {
    * @param commandArray The command to transmit to the card
    * @return The response from the card
    */
-  private def TransmitStandardCommand(card: Card, commandArray: Array[Int]): ResponseAPDU = {
+  private def TransmitCommand(card: Card, commandArray: Array[Int]): ResponseAPDU = {
     val channel: CardChannel = card.getBasicChannel
     val command: CommandAPDU = new CommandAPDU(ToByteArray(commandArray))
 
     try channel.transmit(command)
     catch { case _: CardException => null }
-    finally card.disconnect(false)
+    finally card.disconnect(false) // Ensure the card is always disconnected, even if the program crashes unexpectedly.
   }
 
   // Data manipulation methods.
   private def ToByteArray(nums: Array[Int]): Array[Byte] = nums.map(_.toByte)
-  private def ToHex(bytes: Array[Byte]): String = String.format("%0" + (bytes.length * 2) + "X", new BigInteger(1, bytes))
+  private def ToHexString(bytes: Array[Byte]): String = String.format("%0" + (bytes.length * 2) + "X", new BigInteger(1, bytes))
 
   // Getters and setters
   def GetConnectedTerminals: util.List[CardTerminal] = terminals
@@ -114,8 +113,8 @@ object NFCHandler {
   }
 
   /**
-   * Refreshes the list of connected terminals.
-   * @return The new terminal, this will always be terminals[0], or null if no terminals are connected.
+   * Refreshes the list of connected terminals, before setting the terminal to the first entry in the Terminals list, or None if none are connected.
+   * @return The new terminal, this will always be terminals[0], or None if no terminals are connected.
    */
   def RefreshTerminals: Option[CardTerminal] = {
     try terminals = factory.terminals.list
@@ -124,8 +123,8 @@ object NFCHandler {
     }
 
     cardTerminal = {
-      if (!terminals.isEmpty) Some(terminals.get(0))
-      else null
+      if (terminals.isEmpty) None
+      else Some(terminals.get(0))
     }; cardTerminal
   }
 }
