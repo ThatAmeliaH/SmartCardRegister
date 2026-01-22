@@ -79,7 +79,7 @@ object NFCHandler {
   }
 
   /**
-   * Transmits the standard command to the presented card before disconnecting.
+   * Transmits a command to the presented card before disconnecting it.
    * @param card The card to transmit to
    * @param commandArray The command to transmit to the card
    * @return The response from the card
@@ -99,7 +99,7 @@ object NFCHandler {
 
   // Getters and setters
   def GetConnectedTerminals: util.List[CardTerminal] = terminals
-  def SetActiveTerminal(newTerminal: Int): Unit = cardTerminal = Some(terminals.get(newTerminal))
+  def SetActiveTerminal(newTerminal: Option[Int]): Unit = cardTerminal = Some(terminals.get(newTerminal.getOrElse(0)))
 
   /**
    * Gets the name of the currently active terminal

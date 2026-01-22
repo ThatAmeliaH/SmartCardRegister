@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import scala.Option;
 
 import javax.smartcardio.*;
 
@@ -945,7 +946,7 @@ public class Register extends JFrame {
     if (result == JOptionPane.OK_OPTION) {
       int selected = comboBox.getSelectedIndex();
       if (selected >= 0) {
-        NFCHandler.SetActiveTerminal(selected);
+        NFCHandler.SetActiveTerminal(Option.apply(selected));
         TerminalLabel.setText("Terminal: " + NFCHandler.GetActiveTerminalName());
       }
     }
