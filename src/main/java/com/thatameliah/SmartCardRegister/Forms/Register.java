@@ -64,6 +64,9 @@ public class Register extends JFrame {
 
   public void SetSettingsMenuOpen(boolean newSettingsState) { SettingsMenuOpen = newSettingsState; }
   public void SetTerminalTesterOpen(boolean newTerminalTesterState) { TerminalTesterOpen = newTerminalTesterState; }
+
+  private final InputMap InputMap = ContentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+  private final ActionMap ActionMap = ContentPane.getActionMap();
   
   private boolean isFullscreen = false;
   private Rectangle windowedBounds;
@@ -231,17 +234,13 @@ public class Register extends JFrame {
     KeyStroke keyStroke = KeyStroke.getKeyStroke(shortcut.keyCode, shortcut.modifiers);
     if (keyStroke == null) { throw new InvalidShortcutException("Invalid KeyStroke: Cannot parse KeyStroke for shortcut \"" + shortcut + "\""); }
 
-    // Gets the input map and action map for the main content pane
-    InputMap inputMap = ContentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-    ActionMap actionMap = ContentPane.getActionMap();
-
     // Check for existing bindings and throw an exception if present
-    Object oldBinding = inputMap.get(keyStroke);
+    Object oldBinding = InputMap.get(keyStroke);
     if (oldBinding != null) { throw new InvalidShortcutException("Duplicate Shortcut: KeyStroke \"" + keyStroke + "\" already bound to \""+ oldBinding + "\""); }
 
     // Add the new bindings to the input and action maps
-    inputMap.put(keyStroke, shortcut.name);
-    actionMap.put(shortcut.name, new AbstractAction() {
+    InputMap.put(keyStroke, shortcut.name);
+    ActionMap.put(shortcut.name, new AbstractAction() {
       @Override public void actionPerformed(ActionEvent e) { shortcut.handler.run(); }
     });
   }
@@ -249,17 +248,16 @@ public class Register extends JFrame {
   /**
    * Create a popup menu, and link it to a list of menu entries.
    * @param entries The list of entries to link the popup menu to.
-   * @return        The JPopupMenu, created and formatted
+   * @return The JPopupMenu, created and formatted
    */
-  private JPopupMenu BuildMenu(MenuEntry... entries) {
+  private @NotNull JPopupMenu BuildMenu(@NotNull MenuEntry... entries) {
     JPopupMenu popup = new JPopupMenu();
     
     for (MenuEntry entry : entries) {
       JMenuItem item = new JMenuItem(entry.label);
       item.addActionListener(event -> entry.action.run());
       popup.add(item);
-    }
-    
+    } 
     return popup;
   }
 
@@ -992,10 +990,12 @@ public class Register extends JFrame {
     );
 
     switch (saveResult) {
-      case JOptionPane.YES_OPTION: // Save register and continue exiting
+      // Save register and continue exiting
+      case JOptionPane.YES_OPTION:
         boolean success = SaveRegister();
-        if (success) { break; }
+        if (success) break;
 
+        // If save failed, abort exit and inform user
         JOptionPane.showMessageDialog(
           this,
           "The current register could not be saved. Ensure the chosen directory exists, or change it, and try again.",
@@ -1005,10 +1005,11 @@ public class Register extends JFrame {
         SetStatus(Status.READY);
         return;
 
-      case JOptionPane.NO_OPTION: // Do nothing, exit without saving
-        break;
+      // Do nothing, exit without saving 
+      case JOptionPane.NO_OPTION: break;
 
-      case JOptionPane.CANCEL_OPTION: // Cancel quitting, resume program
+      // Cancel quitting, resume program
+      case JOptionPane.CANCEL_OPTION:
         SetStatus(Status.READY);
         return;
     }
@@ -1032,7 +1033,7 @@ public class Register extends JFrame {
     JPopupMenu FileMenu = BuildMenu(
       new MenuEntry("Save As (Ctrl + S)", this::SaveRegister),
       new MenuEntry("Load File (Ctrl + O)", this::LoadRegister),
-      new MenuEntry("Quit (Escape)", this::Quit)
+      new MenuEntry("Exit (Escape)", this::Quit)
     );
 
     JPopupMenu EditMenu = BuildMenu(

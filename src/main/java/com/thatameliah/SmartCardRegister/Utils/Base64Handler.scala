@@ -13,8 +13,8 @@ object Base64Handler {
    * @return The input String encoded in Base64
    */
   def EncodeString(input: String): String = {
-    if (input == null || input.isEmpty) { new String }
-    else { new String(ENCODER.encode(input.getBytes)) }
+    if (input == null || input.isEmpty) new String 
+    else new String(ENCODER.encode(input.getBytes))
   }
 
   /**
@@ -23,7 +23,7 @@ object Base64Handler {
    * @return The input String decoded into plaintext
    */
   def DecodeString(input: String): String = {
-    if (input == null || input.isEmpty) { new String }
-    else { new String(DECODER.decode(input)) }
+    if (input == null || input.isEmpty) new String
+    else new String(DECODER.decode(input))
   }
 }
