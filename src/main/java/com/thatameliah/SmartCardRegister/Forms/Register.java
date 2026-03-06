@@ -217,6 +217,10 @@ public class Register extends JFrame {
   }
 
   // Helper Functions
+  /**
+   * Sets the status of the register.
+   * @param status The status to set the register to.
+   */
   public void SetStatus(Status status) {
     this.status = status;
 
@@ -260,6 +264,11 @@ public class Register extends JFrame {
     return popup;
   }
 
+  /**
+   * Prompts the user to select a file from their system.
+   * @param title The title for the FileChooser.
+   * @return The file selected by the user.
+   */
   private @Nullable File GetFileFromSystem(String title) {
     JFileChooser fileChooser = new JFileChooser();
     fileChooser.setCurrentDirectory(new File("./saves"));
@@ -274,13 +283,27 @@ public class Register extends JFrame {
   }
 
   // List string functions
+  /**
+   * Formats a student name and ID into a list string.
+   * @param id The ID of the student.
+   * @param name The name of the student.
+   * @return The formatted list string.
+   */
   @Contract(pure = true)
   private @NotNull String FormatListString(int id, String name) { return "[" + id + "]" + ": " + name; }
 
+  /**
+   * Parses the student ID from the string entry representing a student.
+   * @param entry
+   * @return The Integer ID of the student.
+   */
   @Contract(pure = true)
   private @NotNull Integer ParseIdFromListString(@NotNull String entry) { return Integer.parseInt(entry.split(":")[0].replaceAll("[\\[\\]]","").trim()); }
-
+  
   // Button functions
+  /**
+   * Creates a new student and places them at the bottom of the register.
+   */
   private void NewStudent() {
     SetStatus(Status.AWAITING_INPUT);
 
@@ -360,6 +383,9 @@ public class Register extends JFrame {
     SetStatus(Status.READY);
   }
 
+  /**
+   * Updates the information for the selected student.
+   */
   private void UpdateStudent() {
     SetStatus(Status.AWAITING_INPUT);
 
@@ -468,6 +494,10 @@ public class Register extends JFrame {
     SetStatus(Status.READY);
   }
 
+  /**
+   * Deletes the selected student
+   * @param OverrideWarning Bypasses the "Are you sure you would like to delete this student?" warning.
+   */
   private void DeleteStudent(boolean OverrideWarning) {
     SetStatus(Status.AWAITING_INPUT);
 
@@ -539,6 +569,9 @@ public class Register extends JFrame {
     );
   }
 
+  /**
+   * Prompts the user to set the start time displayed by the program.
+   */
   private void SetStartTime() {
     SpinnerDateModel model = new SpinnerDateModel();
     JSpinner timeSpinner = new JSpinner(model);
@@ -630,8 +663,15 @@ public class Register extends JFrame {
     StudentList.repaint();
   }
 
+  /**
+   * Sets the presence of a selected student.
+   * @param newPresence The presence state to set the student to.
+   */
   private void SetPresence(Presence newPresence) { SetPresenceBox.setSelectedItem(newPresence); }
 
+  /**
+   * Starts listening for cards, runs on a new thread.
+   */
   private void StartCardListenerAsync() {
     Listening = true;
 
@@ -640,12 +680,18 @@ public class Register extends JFrame {
     CardListenerThread.start();
   }
 
+  /**
+   * Stops listening for cards and halts the card listener thread.
+   */
   private void StopCardListener() {
     Listening = false;
 
     if (CardListenerThread != null) CardListenerThread.interrupt();
   }
 
+  /**
+   * Listens for cards using the selected card reader, and handles card scans. Should be run asynchronously.
+   */
   private void ListenForCards() {
     while (Listening) {
       String UID = NFCHandler.GetUIDFromCard(0, 0, this);
@@ -717,6 +763,9 @@ public class Register extends JFrame {
     }
   }
 
+  /**
+   * Resets the selected student's UID to "N/A"
+   */
   private void ResetSelectedUID() {
     int selectedIndex = StudentList.getSelectedIndex();
     if (selectedIndex == -1) return;
@@ -740,6 +789,10 @@ public class Register extends JFrame {
     );
   }
 
+  /**
+   * Gets the Presence that a student would be based on the current system and start time.
+   * @return The Presence of the student.
+   */
   private Presence GetPresenceFromStartTime() {
     Date now = new Date();
 
@@ -812,6 +865,9 @@ public class Register extends JFrame {
     return true;
   }
 
+  /**
+   * Loads a register from a file. The user is prompted to select a "Register Save" or ".rsave" file from their system.
+   */
   private void LoadRegister() {
     File loadedFile = GetFileFromSystem("Load File");
     if (loadedFile == null) {
@@ -890,6 +946,9 @@ public class Register extends JFrame {
     SetStatus(Status.READY);
   }
 
+  /**
+   * Toggles the fullscreen state of the program.
+   */
   private void ToggleFullscreen() {
     GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 
@@ -912,6 +971,9 @@ public class Register extends JFrame {
     }
   }
 
+  /**
+   * Sets the active terminal to listen to cards from.
+   */
   private void SetActiveTerminal() {
     final List<CardTerminal> TERMINALS = NFCHandler.GetConnectedTerminals();
     if (TERMINALS.isEmpty()) {
@@ -949,8 +1011,15 @@ public class Register extends JFrame {
     }
   }
 
+  /**
+   * Sets the terminal mode
+   * @param newMode The mode to switch to
+   */
   private void SetTerminalMode(TerminalMode newMode) { this.mode = newMode; }
 
+  /**
+   * Opens the Terminal Tester Utility window
+   */
   public void OpenTerminalTester() {
     if (!TerminalTesterOpen) return;
     
@@ -959,6 +1028,9 @@ public class Register extends JFrame {
     this.SetTerminalTesterOpen(true);
   }
 
+  /**
+   * Configures the card listener to stop on window close or program exit
+   */
   private void SetupStopOnClose() {
     this.addComponentListener(new ComponentAdapter() {
       @Override public void componentHidden(ComponentEvent e) { StopCardListener(); }
@@ -970,6 +1042,9 @@ public class Register extends JFrame {
     });
   }
 
+  /**
+   * Begins the shutdown sequence.
+   */
   public void Quit() {
     SetStatus(Status.AWAITING_INPUT);
     int saveResult = JOptionPane.showConfirmDialog(
@@ -1003,6 +1078,8 @@ public class Register extends JFrame {
       case JOptionPane.CANCEL_OPTION:
         SetStatus(Status.READY);
         return;
+        
+      default: throw new UnsupportedOperationException();
     }
     System.exit(0);
   }
