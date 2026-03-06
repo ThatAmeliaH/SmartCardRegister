@@ -16,7 +16,7 @@ object FileHandler {
       Files.createDirectories(path.getParent)
       Files.writeString(path, content)
     }
-    catch { case err: IOException => System.err.println("Error writing to file " + path + ": " + err.getCause) }
+    catch { case err: IOException => System.err.println("Error writing to file " + path.toString + ": " + err.getMessage) }
   }
 
   /**

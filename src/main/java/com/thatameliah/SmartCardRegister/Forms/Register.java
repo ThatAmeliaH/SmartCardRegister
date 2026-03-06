@@ -175,7 +175,6 @@ public class Register extends JFrame {
       // JFrame actions
       new Shortcut("Exit", KeyEvent.VK_ESCAPE, 0, this::Quit),
       new Shortcut("ToggleFullscreen", KeyEvent.VK_F11, 0, this::ToggleFullscreen),
-      new Shortcut("OpenSettings", KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK, this::OpenSettings),
 
       // Register management actions
       new Shortcut("NewStudent", KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK, this::NewStudent),
@@ -959,14 +958,6 @@ public class Register extends JFrame {
     terminalTester.setVisible(true);
     this.SetTerminalTesterOpen(true);
   }
-  
-  public void OpenSettings() {
-    if (!SettingsMenuOpen) return;
-    
-    SettingsMenu settingsMenu = new SettingsMenu(this);
-    settingsMenu.setVisible(true);
-    this.SetSettingsMenuOpen(true);
-  }
 
   private void SetupStopOnClose() {
     this.addComponentListener(new ComponentAdapter() {
@@ -1044,8 +1035,7 @@ public class Register extends JFrame {
     );
 
     JPopupMenu ViewMenu = BuildMenu(
-      new MenuEntry("Toggle fullscreen (F11)", this::ToggleFullscreen),
-      new MenuEntry("Open Settings (Ctrl + Alt + S)", this::OpenSettings)
+      new MenuEntry("Toggle fullscreen (F11)", this::ToggleFullscreen)
     );
 
     JPopupMenu StudentMenu = BuildMenu(
