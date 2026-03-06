@@ -59,11 +59,7 @@ public class Register extends JFrame {
   private Thread CardListenerThread;
   private int nextID = 1;
 
-  private boolean TerminalTesterOpen = false;
-  private boolean SettingsMenuOpen = false;
-
-  public void SetSettingsMenuOpen(boolean newSettingsState) { SettingsMenuOpen = newSettingsState; }
-  public void SetTerminalTesterOpen(boolean newTerminalTesterState) { TerminalTesterOpen = newTerminalTesterState; }
+  public boolean TerminalTesterOpen = false;
 
   private final InputMap InputMap = ContentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
   private final ActionMap ActionMap = ContentPane.getActionMap();
@@ -294,7 +290,7 @@ public class Register extends JFrame {
 
   /**
    * Parses the student ID from the string entry representing a student.
-   * @param entry
+   * @param entry The list string to parse
    * @return The Integer ID of the student.
    */
   @Contract(pure = true)
@@ -1025,7 +1021,7 @@ public class Register extends JFrame {
     
     TerminalTester terminalTester = new TerminalTester(this);
     terminalTester.setVisible(true);
-    this.SetTerminalTesterOpen(true);
+    TerminalTesterOpen = true;
   }
 
   /**

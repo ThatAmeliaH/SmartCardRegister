@@ -37,7 +37,7 @@ public class TerminalTester extends JFrame {
     this.setTitle("Terminal Tester Utility");
     this.addWindowListener(new WindowAdapter() {
       @Override public void windowClosing(WindowEvent e) {
-        parentRegister.SetTerminalTesterOpen(false);
+        parentRegister.TerminalTesterOpen = false;
         dispose();
       }
     });
