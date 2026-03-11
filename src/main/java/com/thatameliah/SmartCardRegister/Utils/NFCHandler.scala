@@ -97,9 +97,21 @@ object NFCHandler {
   private def ToByteArray(nums: Array[Int]): Array[Byte] = nums.map(_.toByte)
   private def ToHexString(bytes: Array[Byte]): String = String.format("%0" + (bytes.length * 2) + "X", new BigInteger(1, bytes))
 
-  // Getters and setters
+  /**
+   * Gets the list of connected terminals. It is advised to refresh terminals before calling this function, to prevent disconnected terminals from being returned.
+   * @return The list (java.util.List) of CardTerminal objects currently connected.
+   */
   def GetConnectedTerminals: util.List[CardTerminal] = terminals
-  def SetActiveTerminal(newTerminal: Option[Int]): Unit = cardTerminal = Some(terminals.get(newTerminal.getOrElse(0)))
+
+  /**
+   * Sets the active terminal to the integer value provided. If newTerminal is None, the first terminal (position 0) will be selected.
+   * @param newTerminal An optional integer representing the index of the new terminal. Defaults to 0.
+   */
+  def SetActiveTerminal(newTerminal: Option[Integer]): Unit = {
+    val fallback: Integer = Integer.valueOf(0)
+    val terminalNumber: Integer = newTerminal.getOrElse(fallback)
+    cardTerminal = Some(terminals.get(terminalNumber))
+  }
 
   /**
    * Gets the name of the currently active terminal
