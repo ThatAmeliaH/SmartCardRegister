@@ -52,8 +52,8 @@ public class Register extends JFrame {
   private final Map<Integer, Presence> PRESENCE_STATES = new HashMap<>();
   private final Map<Integer, String> UNIQUE_IDS = new HashMap<>();
 
-  private record Shortcut(String name, int keyCode, int modifiers, Runnable handler) {}
-  private record MenuEntry(String label, Runnable action) {}
+  private record Shortcut(String name, int keyCode, int modifiers, Runnable handler){}
+  private record MenuEntry(String label, Runnable action){}
 
   private volatile boolean Listening = false;
   private Thread CardListenerThread;
