@@ -1,5 +1,6 @@
 package com.thatameliah.SmartCardRegister.Forms;
 
+import com.sun.source.tree.YieldTree;
 import com.thatameliah.SmartCardRegister.Exceptions.*;
 import com.thatameliah.SmartCardRegister.Utils.*;
 
@@ -542,18 +543,21 @@ public class Register extends JFrame {
    * Recalculates and sets "nextID" to the lowest unused ID.
    */
   private void RecalculateNextID() {
-    int i = 0;
-    while (STUDENTS.getOrDefault(i, null) != null) { i++; }
+    int i = 1;
+    while (STUDENTS.get(i) != null) { i++; }
     nextID = i;
   }
 
+  /**
+   * Shows all students and the linked UIDs
+   */
   private void ShowStudentUIDs() {
     StringBuilder message = new StringBuilder();
     if (STUDENTS.isEmpty()) { message.append("Register is empty."); }
     else {
       for (int id : STUDENTS.keySet()) {
-        message.append("[").append(id).append("]: ").append(STUDENTS.get(id)).append(" | UID: ").append(UNIQUE_IDS.get(id));
-        message.append("\n");
+        String toAppend = "[" + id + "]: " + STUDENTS.get(id) + " | UID: " + UNIQUE_IDS.get(id) + "\n";
+        message.append(toAppend);
       }
     }
 
@@ -571,7 +575,6 @@ public class Register extends JFrame {
   private void SetStartTime() {
     SpinnerDateModel model = new SpinnerDateModel();
     JSpinner timeSpinner = new JSpinner(model);
-
     DateEditor dateEditor = new DateEditor(timeSpinner, "HH:mm");
     timeSpinner.setEditor(dateEditor);
 
@@ -649,8 +652,8 @@ public class Register extends JFrame {
     Presence currentState = PRESENCE_STATES.getOrDefault(id, Presence.ABSENT);
     Presence newState;
 
-    if (currentState == Presence.ABSENT) newState = GetPresenceFromStartTime();
-    else newState = Presence.ABSENT;
+    if (currentState == Presence.ABSENT) {newState = GetPresenceFromStartTime();}
+    else {newState = Presence.ABSENT;}
 
     PRESENCE_STATES.put(id, newState);
     SetPresenceBox.setSelectedItem(newState);
@@ -718,7 +721,7 @@ public class Register extends JFrame {
           foundStudent = true;
           break;
         }
-        if (!foundStudent) {JOptionPane.showMessageDialog(this, "No student with UID " + UID + " found.", "Student not found", JOptionPane.WARNING_MESSAGE);}
+        if (!foundStudent) {JOptionPane.showMessageDialog(this, "No student with UID " + UID + " found.", "Student not found.", JOptionPane.WARNING_MESSAGE);}
       } else {
         String entry = STUDENT_LIST_MODEL.getElementAt(selectedIndex);
         int studentId = ParseIdFromListString(entry);
