@@ -692,13 +692,15 @@ public class Register extends JFrame {
     while (Listening) {
       String UID = NFCHandler.GetUIDFromCard(0, 0, this);
       SetStatus(Status.READY);
-
+      
       if (UID.isEmpty()) continue;
 
       int selectedIndex = StudentList.getSelectedIndex();
-      if (selectedIndex == -1) continue;
+      if (selectedIndex == -1 && mode == TerminalMode.EDIT) continue;
 
       if (mode == TerminalMode.REGISTER) {
+        boolean foundStudent = false;
+        
         for (Map.Entry<Integer, String> entry : UNIQUE_IDS.entrySet()) {
           if (!entry.getValue().equals(UID)) continue;
 
@@ -713,8 +715,10 @@ public class Register extends JFrame {
           StudentList.revalidate();
           StudentList.repaint();
 
+          foundStudent = true;
           break;
         }
+        if (!foundStudent) {JOptionPane.showMessageDialog(this, "No student with UID " + UID + " found.", "Student not found", JOptionPane.WARNING_MESSAGE);}
       } else {
         String entry = STUDENT_LIST_MODEL.getElementAt(selectedIndex);
         int studentId = ParseIdFromListString(entry);
