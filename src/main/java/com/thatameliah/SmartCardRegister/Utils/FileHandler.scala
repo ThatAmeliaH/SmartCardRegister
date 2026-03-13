@@ -1,5 +1,7 @@
 package com.thatameliah.SmartCardRegister.Utils
 
+import org.jetbrains.annotations.{NotNull, Nullable}
+
 import java.io.{File, IOException}
 import java.nio.file.{Files, Path}
 
@@ -8,10 +10,12 @@ object FileHandler {
    * Writes a string to a file
    * @param content The String to be written
    * @param file The file to write to
+   * @throws NullPointerException If file or content are null
    */
-  def WriteToFile(file: File, content: String): Unit = {
+  def WriteToFile(@NotNull file: File, @NotNull content: String): Unit = {
+    if (file == null || content == null) throw new NullPointerException
     val path = file.toPath
-
+    
     try {
       Files.createDirectories(path.getParent)
       Files.writeString(path, content)
@@ -24,7 +28,7 @@ object FileHandler {
    * @param file The file to read from
    * @return The string contents of the file
    */
-  def ReadFile(file: File): String = {
+  @NotNull def ReadFile(@NotNull file: File): String = {
     val path: Path = file.toPath
 
     if (!Files.exists(path)) { return new String }

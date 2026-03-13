@@ -1,6 +1,7 @@
 package com.thatameliah.SmartCardRegister.Utils
 
 import com.thatameliah.SmartCardRegister.Forms.Register
+import org.jetbrains.annotations.{NotNull, Nullable}
 
 import java.math.BigInteger
 import javax.smartcardio._
@@ -21,24 +22,28 @@ object NFCHandler {
    * @param register The register object invoking this method.
    * @return The UID of the presented card as a String of Hex values
    */
-  def GetUIDFromCard(cardPresentTimeout: Long, cardAbsentTimeout: Long, register: Register): String = {
-    if (register.status != Register.Status.READY) return new String
-    if (cardTerminal.isEmpty) return new String
-    
-    val terminal = cardTerminal.get
-    terminal.waitForCardPresent(cardPresentTimeout)
+  @NotNull def GetUIDFromCard(cardPresentTimeout: Long, cardAbsentTimeout: Long, register: Register): String = {
+    try {
+      if (register.status != Register.Status.READY) return new String
+      if (cardTerminal.isEmpty) return new String
 
-    val card: Card = ConnectToCard
-    if (card == null) return new String
+      val terminal = cardTerminal.get
+      terminal.waitForCardPresent(cardPresentTimeout)
 
-    val response: ResponseAPDU = TransmitCommand(card, standardCommand)
-    if (response == null) return new String
-    if (response.getSW1 == 0x63 && response.getSW2 == 0x00) return new String
-    val UID: Array[Byte] = response.getData
+      val card: Card = ConnectToCard
+      if (card == null) return new String
 
-    register.SetStatus(Register.Status.WAITING_FOR_CARD_ABSENT)
-    terminal.waitForCardAbsent(cardPresentTimeout)
-    ToHexString(UID)
+      val response: ResponseAPDU = TransmitCommand(card, standardCommand)
+      if (response == null) return new String
+      if (response.getSW1 == 0x63 && response.getSW2 == 0x00) return new String
+      val UID: Array[Byte] = response.getData
+
+      register.SetStatus(Register.Status.WAITING_FOR_CARD_ABSENT)
+      terminal.waitForCardAbsent(cardPresentTimeout)
+      ToHexString(UID)
+    } catch {
+      case _: CardException => new String
+    }
   }
 
   /**
@@ -47,29 +52,33 @@ object NFCHandler {
    * @param cardAbsentTimeout The amount of time to wait for the card to be removed. 0 waits indefinitely and is recommended.
    * @return The UID of the presented card as a String of Hex values
    */
-  def TestTerminal(cardPresentTimeout: Long, cardAbsentTimeout: Long): String = {
+  @NotNull def TestTerminal(cardPresentTimeout: Long, cardAbsentTimeout: Long): String = {
     if (cardTerminal.isEmpty) return new String
-    val terminal = cardTerminal.get
+    try {
+      val terminal = cardTerminal.get
 
-    terminal.waitForCardPresent(cardPresentTimeout)
+      terminal.waitForCardPresent(cardPresentTimeout)
 
-    val card: Card = ConnectToCard
-    if (card == null) return new String
+      val card: Card = ConnectToCard
+      if (card == null) return new String
 
-    val response: ResponseAPDU = TransmitCommand(card, standardCommand)
-    if (response == null) return new String
-    if (response.getSW1 == 0x63 && response.getSW2 == 0x00) return new String
-    val UID: Array[Byte] = response.getData
+      val response: ResponseAPDU = TransmitCommand(card, standardCommand)
+      if (response == null) return new String
+      if (response.getSW1 == 0x63 && response.getSW2 == 0x00) return new String
+      val UID: Array[Byte] = response.getData
 
-    terminal.waitForCardAbsent(cardAbsentTimeout)
-    ToHexString(UID)
+      terminal.waitForCardAbsent(cardAbsentTimeout)
+      ToHexString(UID) 
+    } catch {
+      case _: CardException => new String
+    }
   }
 
   /**
    * Connect to a smart card using a wildcard protocol.
    * @return The card that has been connected
    */
-  private def ConnectToCard: Card = {
+  @Nullable private def ConnectToCard: Card = {
     try cardTerminal match {
       case Some(terminal) => terminal.connect("*")
       case None => null
@@ -82,26 +91,33 @@ object NFCHandler {
    * Transmits a command to the presented card before disconnecting it.
    * @param card The card to transmit to
    * @param commandArray The command to transmit to the card
-   * @return The response from the card
+   * @return The response from the card, or null if an operation fails.
+   * @throws CardException If the card fails to disconnect.
    */
-  private def TransmitCommand(card: Card, commandArray: Array[Int]): ResponseAPDU = {
+  @throws[CardException]
+  @Nullable private def TransmitCommand(@NotNull card: Card, @NotNull commandArray: Array[Int]): ResponseAPDU = {
     val channel: CardChannel = card.getBasicChannel
     val command: CommandAPDU = new CommandAPDU(ToByteArray(commandArray))
 
     try channel.transmit(command)
-    catch { case _: CardException => null }
+      
+    catch { 
+      case _: CardException => null
+      case _: IllegalStateException => null
+    }
+      
     finally card.disconnect(false) // Ensure the card is always disconnected, even if the program crashes unexpectedly.
   }
 
   // Data manipulation methods.
-  private def ToByteArray(nums: Array[Int]): Array[Byte] = nums.map(_.toByte)
-  private def ToHexString(bytes: Array[Byte]): String = String.format("%0" + (bytes.length * 2) + "X", new BigInteger(1, bytes))
+  private def ToByteArray(@NotNull nums: Array[Int]): Array[Byte] = nums.map(_.toByte)
+  private def ToHexString(@NotNull bytes: Array[Byte]): String = String.format("%0" + (bytes.length * 2) + "X", new BigInteger(1, bytes))
 
   /**
    * Gets the list of connected terminals. It is advised to refresh terminals before calling this function, to prevent disconnected terminals from being returned.
    * @return The list (java.util.List) of CardTerminal objects currently connected.
    */
-  def GetConnectedTerminals: util.List[CardTerminal] = terminals
+  @NotNull def GetConnectedTerminals: util.List[CardTerminal] = terminals
 
   /**
    * Sets the active terminal to the integer value provided. If newTerminal is None, the first terminal (position 0) will be selected.
@@ -117,7 +133,7 @@ object NFCHandler {
    * Gets the name of the currently active terminal
    * @return The name of the terminal connected, or "N/A" if no terminal is selected.
    */
-  def GetActiveTerminalName: String = {
+  @NotNull def GetActiveTerminalName: String = {
     cardTerminal match {
       case Some(t) => t.getName
       case None => "N/A"
@@ -128,7 +144,7 @@ object NFCHandler {
    * Refreshes the list of connected terminals, before setting the terminal to the first entry in the Terminals list, or None if none are connected.
    * @return The new terminal, this will always be terminals[0], or None if no terminals are connected.
    */
-  def RefreshTerminals: Option[CardTerminal] = {
+  @NotNull def RefreshTerminals: Option[CardTerminal] = {
     try terminals = factory.terminals.list
     catch {
       case _: CardException => terminals = new util.ArrayList[CardTerminal]

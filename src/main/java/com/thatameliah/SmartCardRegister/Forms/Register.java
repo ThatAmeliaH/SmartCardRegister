@@ -1,33 +1,45 @@
 package com.thatameliah.SmartCardRegister.Forms;
 
+// Internal classes
 import com.thatameliah.SmartCardRegister.Exceptions.*;
 import com.thatameliah.SmartCardRegister.Utils.*;
 
+// Annotations
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+// JSON Objects
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import scala.Option;
 
+// Smart card integration
 import javax.smartcardio.*;
 
+// UI Classes
 import javax.swing.*;
 import javax.swing.filechooser.*;
 import javax.swing.JSpinner.DateEditor;
 
+// Graphics and rendering
 import java.awt.*;
 import java.awt.event.*;
 
+// File handling
 import java.io.File;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import java.util.*;
+// Data structures
+import java.util.Map;
 import java.util.List;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+
+// Scala Interop
+import scala.Option;
 
 public class Register extends JFrame {
   private JPanel ContentPane;
@@ -43,6 +55,7 @@ public class Register extends JFrame {
   private JLabel StartTimeLabel;
   private JRadioButton RegisterModeRButton;
   private JRadioButton EditModeRButton;
+  private JRadioButton IgnoreButton;
 
   private final int MAX_NAME_LENGTH = 25;
   
@@ -70,6 +83,7 @@ public class Register extends JFrame {
   private final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm");
   private Date startTime;
 
+  public TerminalTester terminalTesterWindow;
   public TerminalMode mode = TerminalMode.REGISTER;
   public Status status = Status.LOADING;
   
@@ -93,6 +107,7 @@ public class Register extends JFrame {
   public enum TerminalMode {
     REGISTER,
     EDIT,
+    IGNORE,
   }
 
   private final Map<Status, String> STATUS_MAP = new HashMap<>() {{
@@ -106,7 +121,7 @@ public class Register extends JFrame {
     put(Status.WAITING_FOR_CARD_ABSENT, "Remove Card");
   }};
 
-  private final Map<Presence, Color> PRESENCE_MAP = new HashMap<>() {{
+  private final Map<Presence, Color> PRESENCE_COLOURS = new HashMap<>() {{
     put(Presence.PRESENT, new Color(150, 255, 150));
     put(Presence.ABSENT, new Color(255, 150, 200));
     put(Presence.LATE, new Color(255, 200, 50));
@@ -116,8 +131,9 @@ public class Register extends JFrame {
   public Register() {
     SetStatus(Status.LOADING);
     
-    // Setup view size
-    final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
+    // Calculate window size
+    final Toolkit DEFAULT_TOOLKIT = Toolkit.getDefaultToolkit();
+    final Dimension SCREEN_SIZE = DEFAULT_TOOLKIT.getScreenSize();
     final double HEIGHT = SCREEN_SIZE.getHeight();
     final int V_HEIGHT = (int) HEIGHT / 2;
     final double WIDTH = SCREEN_SIZE.getWidth();
@@ -152,7 +168,7 @@ public class Register extends JFrame {
           label.setBackground(list.getSelectionBackground());
           label.setForeground(list.getSelectionForeground());
         } else {
-          label.setBackground(PRESENCE_MAP.get(state));
+          label.setBackground(PRESENCE_COLOURS.get(state));
           label.setForeground(Color.BLACK);
         }
 
@@ -162,8 +178,8 @@ public class Register extends JFrame {
     });
 
     SetPresenceBox.setModel(new DefaultComboBoxModel<>(Presence.values()));
-    StudentList.addListSelectionListener(e -> UpdateFieldsFromSelection());
     SetPresenceBox.addActionListener(e -> UpdatePresence());
+    StudentList.addListSelectionListener(e -> UpdateFieldsFromSelection());
 
     // Setup shortcuts
     // Assign keys to functions
@@ -194,7 +210,7 @@ public class Register extends JFrame {
       // Terminal management actions
       new Shortcut("SetActiveTerminal", KeyEvent.VK_T, KeyEvent.SHIFT_DOWN_MASK, this::SetActiveTerminal),
       new Shortcut("RefreshConnectedTerminals", KeyEvent.VK_R, KeyEvent.SHIFT_DOWN_MASK, NFCHandler::RefreshTerminals),
-      new Shortcut("OpenTerminalTester", KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK, this::OpenTerminalTester)
+      new Shortcut("OpenTerminalTester", KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, this::OpenTerminalTester)
     };
 
     // Bind functions to key presses
@@ -202,6 +218,7 @@ public class Register extends JFrame {
 
     RegisterModeRButton.addActionListener(e -> SetTerminalMode(TerminalMode.REGISTER));
     EditModeRButton.addActionListener(e -> SetTerminalMode(TerminalMode.EDIT));
+    IgnoreButton.addActionListener(e -> SetTerminalMode(TerminalMode.IGNORE));
 
     // Setup terminal and begin listening for cards.
     TerminalLabel.setText("Terminal: " + NFCHandler.GetActiveTerminalName());
@@ -695,6 +712,7 @@ public class Register extends JFrame {
       String UID = NFCHandler.GetUIDFromCard(0, 0, this);
       SetStatus(Status.READY);
       
+      if (mode == TerminalMode.IGNORE) continue;
       if (UID.isEmpty()) continue;
 
       int selectedIndex = StudentList.getSelectedIndex();
@@ -879,7 +897,7 @@ public class Register extends JFrame {
 
     try {
       String encodedString = FileHandler.ReadFile(loadedFile);
-      if (encodedString == null || encodedString.isEmpty()) {
+      if (encodedString.isEmpty()) {
         JOptionPane.showMessageDialog(
           this,
           "The selected file could not be read or is empty.",
@@ -1023,10 +1041,35 @@ public class Register extends JFrame {
    * Opens the Terminal Tester Utility window
    */
   public void OpenTerminalTester() {
-    if (!TerminalTesterOpen) return;
+    if (TerminalTesterOpen) {
+      int reloadChoice = JOptionPane.showConfirmDialog(
+        this,
+        "An instance of the Terminal Tester Utility is already open. Would you like to terminate it and open a new one?",
+        "Terminal Tester already open",
+        JOptionPane.YES_NO_OPTION,
+        JOptionPane.WARNING_MESSAGE
+      );
+
+      if (reloadChoice != JOptionPane.YES_OPTION) return;
+      
+      if (terminalTesterWindow != null) {
+        terminalTesterWindow.dispose();
+        terminalTesterWindow = null;
+        TerminalTesterOpen = false;
+      } else {
+        JOptionPane.showMessageDialog(
+          this,
+          "Open Terminal Tester instance does not exist or could not be found.",
+          "Failed to close Terminal Tester",
+          JOptionPane.ERROR_MESSAGE
+        ); return; }
+    }
     
-    TerminalTester terminalTester = new TerminalTester(this);
-    terminalTester.setVisible(true);
+    IgnoreButton.setSelected(true);
+    SetTerminalMode(TerminalMode.IGNORE);
+    
+    terminalTesterWindow = new TerminalTester(this);
+    terminalTesterWindow.setVisible(true);
     TerminalTesterOpen = true;
   }
 

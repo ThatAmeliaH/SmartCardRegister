@@ -1,5 +1,7 @@
 package com.thatameliah.SmartCardRegister.Utils
 
+import org.jetbrains.annotations.{NotNull, Nullable}
+
 import java.util.Base64
 import java.util.Base64.{Decoder, Encoder}
 
@@ -12,8 +14,8 @@ object Base64Handler {
    * @param input The String to be encoded
    * @return The input String encoded in Base64
    */
-  def EncodeString(input: String): String = {
-    if (input == null || input.isEmpty) new String 
+  @NotNull def EncodeString(@Nullable input: String): String = {
+    if (input == null || input.isEmpty) new String(ENCODER.encode("".getBytes()))
     else new String(ENCODER.encode(input.getBytes))
   }
 
@@ -22,7 +24,7 @@ object Base64Handler {
    * @param input The String to be decoded
    * @return The input String decoded into plaintext
    */
-  def DecodeString(input: String): String = {
+  @NotNull def DecodeString(@NotNull input: String): String = {
     if (input == null || input.isEmpty) new String
     else new String(DECODER.decode(input))
   }
