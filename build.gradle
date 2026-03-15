@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'scala'
+    id 'org.jetbrains.kotlin.jvm'
 }
 
 group = 'com.thatameliah'
@@ -13,8 +14,12 @@ repositories {
 dependencies {
     // https://mvnrepository.com/artifact/org.json/json
     implementation("org.json:json:20250517")
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
 test {
     useJUnitPlatform()
+}
+kotlin {
+    jvmToolchain(21)
 }
