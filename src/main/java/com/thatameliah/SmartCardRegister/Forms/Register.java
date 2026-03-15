@@ -127,6 +127,12 @@ public class Register extends JFrame {
     put(Presence.LATE, new Color(255, 200, 50));
   }};
 
+  private final Map<Presence, Character> PRESENCE_CHARS = new HashMap<>() {{
+    put(Presence.PRESENT, '/');
+    put(Presence.ABSENT, 'O');
+    put(Presence.LATE, 'L');
+  }};
+
   // Main form constructor
   public Register() {
     SetStatus(Status.LOADING);
@@ -243,7 +249,7 @@ public class Register extends JFrame {
 
   /**
    * Binds a shortcut's KeyCode and Modifiers to its Runnable function
-   * @param shortcut                  The shortcut to bind
+   * @param shortcut The shortcut to bind
    * @throws InvalidShortcutException If the provided KeyCode has already been bound or does not exist
    */
   private void BindKey(@NotNull Shortcut shortcut) throws InvalidShortcutException {
@@ -303,7 +309,12 @@ public class Register extends JFrame {
    * @return The formatted list string.
    */
   @Contract(pure = true)
-  private @NotNull String FormatListString(int id, String name) { return "[" + id + "]" + ": " + name; }
+  private @NotNull String FormatListString(int id, String name) {
+    Presence presence = PRESENCE_STATES.get(id);
+    Character presenceChar = PRESENCE_CHARS.get(presence);
+
+    return "[" + id + "]" + ": " + name + " (" + presenceChar + ")";
+  }
 
   /**
    * Parses the student ID from the string entry representing a student.
@@ -391,8 +402,8 @@ public class Register extends JFrame {
     PRESENCE_STATES.put(nextID, Presence.ABSENT);
     UNIQUE_IDS.put(nextID, "N/A");
     STUDENT_LIST_MODEL.addElement(FormatListString(nextID, fullName));
-    
-    RecalculateNextID();
+    nextID = RecalculateNextID();
+
     SetStatus(Status.READY);
   }
 
@@ -550,18 +561,19 @@ public class Register extends JFrame {
     PRESENCE_STATES.remove(id);
     UNIQUE_IDS.remove(id);
     STUDENT_LIST_MODEL.remove(selectedIndex);
-    
-    RecalculateNextID();
+    nextID = RecalculateNextID();
+
     SetStatus(Status.READY);
   }
 
   /**
    * Recalculates and sets "nextID" to the lowest unused ID.
    */
-  private void RecalculateNextID() {
+  @Contract(pure = true)
+  private @NotNull Integer RecalculateNextID() {
     int i = 1;
     while (STUDENTS.get(i) != null) { i++; }
-    nextID = i;
+    return i;
   }
 
   /**
@@ -651,6 +663,7 @@ public class Register extends JFrame {
     if (state == null) return;
 
     PRESENCE_STATES.put(id, state);
+    STUDENT_LIST_MODEL.set(selectedIndex, FormatListString(id, STUDENTS.get(id)));
     StudentList.revalidate();
     StudentList.repaint();
   }
@@ -682,7 +695,7 @@ public class Register extends JFrame {
    * Sets the presence of a selected student.
    * @param newPresence The presence state to set the student to.
    */
-  private void SetPresence(Presence newPresence) { SetPresenceBox.setSelectedItem(newPresence); }
+  private void SetPresence(@NotNull Presence newPresence) {SetPresenceBox.setSelectedItem(newPresence);}
 
   /**
    * Starts listening for cards, runs on a new thread.
@@ -813,7 +826,7 @@ public class Register extends JFrame {
    * Gets the Presence that a student would be based on the current system and start time.
    * @return The Presence of the student.
    */
-  private Presence GetPresenceFromStartTime() {
+  private @NotNull Presence GetPresenceFromStartTime() {
     Date now = new Date();
 
     if (startTime == null || now.before(startTime)) return Presence.PRESENT;
@@ -1035,7 +1048,7 @@ public class Register extends JFrame {
    * Sets the terminal mode
    * @param newMode The mode to switch to
    */
-  private void SetTerminalMode(TerminalMode newMode) { this.mode = newMode; }
+  private void SetTerminalMode(@NotNull TerminalMode newMode) { this.mode = newMode; }
 
   /**
    * Opens the Terminal Tester Utility window
