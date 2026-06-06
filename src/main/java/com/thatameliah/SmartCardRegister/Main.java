@@ -1,9 +1,3 @@
-/*
-    Smart Card Registration system.
-    Initial prototype by Sidney "ThatAmeliaH" Hills.
-    Candidate number 3829.
-*/
-
 package com.thatameliah.SmartCardRegister;
 
 // Internal Java classes

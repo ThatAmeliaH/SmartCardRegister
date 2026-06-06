@@ -128,8 +128,8 @@ public class Register extends JFrame {
   }};
 
   private final Map<Presence, Character> PRESENCE_CHARS = new HashMap<>() {{
-    put(Presence.PRESENT, '/');
-    put(Presence.ABSENT, 'O');
+    put(Presence.PRESENT, 'O');
+    put(Presence.ABSENT, 'X');
     put(Presence.LATE, 'L');
   }};
 
@@ -313,7 +313,7 @@ public class Register extends JFrame {
     Presence presence = PRESENCE_STATES.get(id);
     Character presenceChar = PRESENCE_CHARS.get(presence);
 
-    return "[" + id + "]" + ": " + name + " (" + presenceChar + ")";
+    return "[" + id + "]: " + name + " (" + presenceChar + ")";
   }
 
   /**
@@ -698,7 +698,7 @@ public class Register extends JFrame {
   private void SetPresence(@NotNull Presence newPresence) {SetPresenceBox.setSelectedItem(newPresence);}
 
   /**
-   * Starts listening for cards, runs on a new thread.
+   * Starts listening for cards, runs on the "CardListener" thread.
    */
   private void StartCardListenerAsync() {
     Listening = true;
@@ -722,7 +722,7 @@ public class Register extends JFrame {
    */
   private void ListenForCards() {
     while (Listening) {
-      String UID = NFCHandler.GetUIDFromCard(0, 0, this);
+      String UID = NFCHandler.GetUIDFromCard(this, 0, 0);
       SetStatus(Status.READY);
       
       if (mode == TerminalMode.IGNORE) continue;
@@ -1227,7 +1227,7 @@ public class Register extends JFrame {
    * Configure and format a JLabel using the standard Status Label format, and link it to a JPanel.
    * @param text  The text for the label.
    * @param panel The JPanel to link the formatted label to.
-   * @return      The JLabel, created and formatted.
+   * @return The JLabel, created and formatted.
    */
   private @NotNull JLabel CreateStatusLabel(@NotNull String text, @NotNull JPanel panel) {
     JLabel label = new JLabel(text);

@@ -22,7 +22,7 @@ object NFCHandler {
    * @param register The register object invoking this method.
    * @return The UID of the presented card as a String of Hex values
    */
-  @NotNull def GetUIDFromCard(cardPresentTimeout: Long, cardAbsentTimeout: Long, register: Register): String = {
+  @NotNull def GetUIDFromCard(register: Register, cardPresentTimeout: Long, cardAbsentTimeout: Long): String = {
     try {
       if (register.status != Register.Status.READY) return new String
       if (cardTerminal.isEmpty) return new String
@@ -68,7 +68,7 @@ object NFCHandler {
       val UID: Array[Byte] = response.getData
 
       terminal.waitForCardAbsent(cardAbsentTimeout)
-      ToHexString(UID) 
+      ToHexString(UID)
     } catch {
       case _: CardException => new String
     }
@@ -106,11 +106,21 @@ object NFCHandler {
       case _: IllegalStateException => null
     }
       
-    finally card.disconnect(false) // Ensure the card is always disconnected, even if the program crashes unexpectedly.
+    finally card.disconnect(false)
   }
 
-  // Data manipulation methods.
+  /**
+   * Converts an array of integers to an array of bytes.
+   * @param nums The array of numbers to convert.
+   * @return The converted array of bytes.
+   */
   private def ToByteArray(@NotNull nums: Array[Int]): Array[Byte] = nums.map(_.toByte)
+
+  /**
+   * Converts an array of bytes to a single hexadecimal string.
+   * @param bytes The array of bytes to convert.
+   * @return The formatted hexadecimal string.
+   */
   private def ToHexString(@NotNull bytes: Array[Byte]): String = String.format("%0" + (bytes.length * 2) + "X", new BigInteger(1, bytes))
 
   /**
@@ -123,7 +133,7 @@ object NFCHandler {
    * Sets the active terminal to the integer value provided. If newTerminal is None, the first terminal (position 0) will be selected.
    * @param newTerminal An optional integer representing the index of the new terminal. Defaults to 0.
    */
-  def SetActiveTerminal(newTerminal: Option[Integer]): Unit = {
+  def SetActiveTerminal(@Nullable newTerminal: Option[Integer]): Unit = {
     val fallback: Integer = Integer.valueOf(0)
     val terminalNumber: Integer = newTerminal.getOrElse(fallback)
     cardTerminal = Some(terminals.get(terminalNumber))
@@ -146,9 +156,7 @@ object NFCHandler {
    */
   @NotNull def RefreshTerminals: Option[CardTerminal] = {
     try terminals = factory.terminals.list
-    catch {
-      case _: CardException => terminals = new util.ArrayList[CardTerminal]
-    }
+    catch {case _: CardException => terminals = new util.ArrayList[CardTerminal]}
 
     cardTerminal = {
       if (terminals.isEmpty) None
